@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  /* Unified progress bar — fills over ~45 seconds (both analysis phases) */
+  @keyframes progressBarFill {
+    0% { width: 0%; }
+    5% { width: 8%; }
+    15% { width: 22%; }
+    30% { width: 38%; }
+    45% { width: 52%; }
+    60% { width: 65%; }
+    75% { width: 78%; }
+    90% { width: 88%; }
+    100% { width: 94%; }
+  }
+
+  .progress-bar-fill {
+    animation: progressBarFill 45s ease-out forwards;
+  }
+}
