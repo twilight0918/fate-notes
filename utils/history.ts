@@ -23,7 +23,7 @@ export interface HistoryRecord {
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const STORAGE_KEY = "fate-map-history";
+const STORAGE_KEY = "fate-notes-history";
 const MAX_RECORDS = 50;
 
 // ─── CRUD ────────────────────────────────────────────────────────────────────

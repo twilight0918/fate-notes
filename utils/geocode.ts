@@ -23,7 +23,7 @@ export async function geocodeCity(city: string): Promise<GeoCoords> {
   const res = await fetch(url, {
     headers: {
       // Nominatim requires a User-Agent identifying the app
-      "User-Agent": "fate-map/1.0 (personal tool)",
+      "User-Agent": "fate-notes/1.0 (personal tool)",
     },
   });
 

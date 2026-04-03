@@ -480,7 +480,7 @@ export default function HomePage() {
             <div className="flex justify-end">
               <ShareButton
                 targetId="fate-result"
-                fileName={userName ? `${userName}-fate-map` : "fate-map-report"}
+                fileName={userName ? `${userName}-fate-notes` : "fate-notes-report"}
                 label="下載完整報告"
                 onBeforeCapture={async () => setCaptureMode(true)}
                 onAfterCapture={() => setCaptureMode(false)}

@@ -14,7 +14,7 @@ interface ShareButtonProps {
 
 export default function ShareButton({
   targetId,
-  fileName = "fate-map-report",
+  fileName = "fate-notes-report",
   label = "下載報告圖片",
   className = "",
   onBeforeCapture,

@@ -1,4 +1,4 @@
-# fate-map — Sprint 1 就緒包
+# fate-notes — Sprint 1 就緒包
 研究完成：2026-03-18
 作者：Claude Code 主腦（研究 sprint）
 
@@ -185,7 +185,7 @@ const ZODIAC_MAP = [
 
 ## 7. Sprint 1 開工清單
 
-確認以下後即可執行 `npx create-next-app@latest fate-map`：
+確認以下後即可執行 `npx create-next-app@latest fate-notes`：
 
 - [ ] **Edward 確認**：八字改用 LLM 方案，不用 Python 庫
 - [ ] **Edward 確認**：humandesignhub.app 免費額度夠用（100 calls/月）

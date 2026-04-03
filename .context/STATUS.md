@@ -1,70 +1,66 @@
-# fate-map — 專案狀態
-最後更新：2026-03-20
+# 命運手記 Fate Notes — 專案狀態
+最後更新：2026-03-27
+
+---
+
+## 當前狀態
+
+**已上線** 🟢 https://fate-notes.vercel.app
+**GitHub** https://github.com/twilight0918/fate-notes（public）
 
 ---
 
 ## 當前 Phase
 
-**Sprint 5**：命盤圖 + 截圖分享 + 紫微流年 🚧 實作完成，待驗收
-目標：紫微四方盤視覺化、流年運勢、截圖下載分享
+**Sprint 6**：部署上線 + BYOK 多供應商 ✅ 完成
 
-**驗收條件：**
-- [x] `components/ZiweiChart.tsx` — 傳統四方盤 4×4 grid
-- [x] `components/YearlyFortuneCard.tsx` — 流年四化 + 重點宮位
-- [x] `components/ShareButton.tsx` — html-to-image 截圖下載
-- [x] `utils/iztro-helpers.ts` — 新增 `getYearlyFortune()`
-- [x] `app/page.tsx` — 整合三元件 + `id="fate-result"`
-- [x] TypeScript 0 errors + build 成功
-- [ ] **待驗收**：命盤圖 12 宮位正確排列，命宮/身宮有標記
-- [ ] **待驗收**：流年四化（祿權科忌）與 iztro 一致
-- [ ] **待驗收**：截圖下載按鈕產出 PNG 含完整卡片
+**完成項目：**
+- [x] BYOK 多供應商支援（Gemini / OpenAI / Anthropic）
+- [x] 三種分析模式（快速/標準/深入）+ 各供應商最新模型
+- [x] 品牌更名：命運手記 Fate Notes
+- [x] 部署前清理（移除 debug route、錯誤訊息通用化、OG metadata、favicon）
+- [x] GitHub repo 建立 + Vercel 部署
+- [x] Human Design API Key 維持 server-side
 
 ---
 
 ## Sprint 歷史
 
-### Sprint 5（2026-03-20）🚧 待驗收
-- [x] `ZiweiChart.tsx`（傳統四方盤，地支→grid 位置 mapping，命/身宮標記）
-- [x] `YearlyFortuneCard.tsx`（流年四化 + 命宮/財帛/官祿/夫妻/遷移/福德）
-- [x] `ShareButton.tsx`（html-to-image `toPng`，2x pixel ratio，深色背景）
-- [x] `iztro-helpers.ts` 擴展（`getYearlyFortune()` 用 `astrolabe.horoscope()`）
-- [x] `page.tsx` 整合（ZiweiChart 取代十二宮位列表 + YearlyFortuneCard + ShareButton）
-- [x] TypeScript 0 errors + build 成功
-- [ ] 端到端驗收
+### Sprint 6（2026-03-27）✅ 完成
+- [x] BYOK：`utils/ai-provider.ts` Provider 抽象層（Gemini/OpenAI/Anthropic）
+- [x] 安裝 `openai` SDK；`@anthropic-ai/sdk` 已有
+- [x] `/api/analyze` + `/api/cross-analysis` 改為接收前端傳入的 provider + apiKey
+- [x] 前端 UI：供應商下拉 → Key 輸入 → 動態模型選擇器
+- [x] 品牌更名：標題、metadata、OG tags 更新為「命運手記 Fate Notes」
+- [x] 移除 `/api/models` debug route
+- [x] 驗收指引改為 footer credit
+- [x] 錯誤訊息通用化（不洩漏內部資訊）
+- [x] favicon（📖 SVG）+ Open Graph metadata
+- [x] Git init + GitHub push + Vercel 部署
 
-### Sprint 4（2026-03-20）🚧 待驗收
-- [x] `/api/cross-analysis/route.ts`（Gemini 三層模型：test/normal/premium）
-- [x] `CrossAnalysisCard.tsx`（人格畫像 + 共振信號 + 張力點 + 六面向人生說明書 + 總結）
-- [x] `page.tsx` 更新（介面模型選擇器 + 接續式 API call + progressive rendering）
-- [x] TypeScript 0 errors
-- [ ] 端到端驗收
+### Sprint 5（2026-03-20）✅ 完成
+- [x] `ZiweiChart.tsx`（傳統四方盤 CSS grid）
+- [x] `YearlyFortuneCard.tsx`（流年四化 + 重點宮位）
+- [x] `ShareButton.tsx`（html-to-image 截圖下載）
+- [x] `iztro-helpers.ts` 擴展（`getYearlyFortune()`）
+
+### Sprint 4（2026-03-20）✅ 完成
+- [x] `/api/cross-analysis/route.ts`（AI 交叉分析）
+- [x] `CrossAnalysisCard.tsx`（人格畫像 + 共振 + 張力 + 六面向）
+- [x] 模型選擇器（三層級）
 
 ### Sprint 3（2026-03-20）✅ 完成
-- [x] 人類圖 API 整合（humandesignhub.app `/v1/simple-bodygraph`）
-- [x] 城市→時區 mapping（60+ 城市）
-- [x] Strategy/NotSelf/Signature 本地查表（from Type）
-- [x] Authority 本地推導（from defined centers 優先順序）
-- [x] 四系統並排（紫微 + 八字 + 人類圖 + 星座）
+- [x] 人類圖 API 整合（humandesignhub.app）
+- [x] 城市→時區 mapping + Strategy/Authority 本地推導
 
-### Sprint 2（2026-03-18/20）✅ 完成（含驗收）
-- [x] `/api/analyze` route（Gemini API gemini-2.5-flash + JSON prompt）
-- [x] `BaziCard` 元件（日主、身強弱、五行、特質、摘要、交叉觀察）
-- [x] `page.tsx` 更新（async API call，iztro 計算 → Gemini 解讀流程）
-- [x] TypeScript 0 errors
-- [x] bazi-lab.com 比對四柱干支 ✓
+### Sprint 2（2026-03-18/20）✅ 完成
+- [x] 八字 AI 分析（Gemini API）+ BaziCard
 
-### Sprint 1（2026-03-18）✅ 完成（含驗收）
-- [x] Next.js + TypeScript + Tailwind 可啟動
-- [x] iztro v2.5.8 安裝，`bySolar()` 正常呼叫
-- [x] 輸入表單（生日/時辰/性別/城市）
-- [x] 12 宮位主星 + 命/身宮標示 + 星座
-- [x] ziwei.pub 人工比對 ✓
+### Sprint 1（2026-03-18）✅ 完成
+- [x] Next.js + iztro 整合 + 紫微排盤 + 星座
 
 ### Pre-Sprint（2026-03-18）
-- iztro v2.5.8 確認可用（本地 npm，無 API 費用）
-- 八字改採 Gemini API（@google/genai v1.46.0，gemini-2.5-flash）
-- 人類圖：humandesignhub.app 免費 100 credits/月（0.5 cr/request）
-- 驗證基準：紫微→ziwei.pub，八字→bazi-lab.com，人類圖→mybodygraph.com
+- 技術選型研究完成（見 `PRE_SPRINT.md`）
 
 ---
 
@@ -72,77 +68,82 @@
 
 | 日期 | 決策 | 理由 |
 |------|------|------|
-| 2026-03-18 | 八字用 Gemini API（gemini-2.5-flash），不用 Python 庫 | npm 替代方案品質不足；Gemini free tier 夠用 |
-| 2026-03-18 | iztro 四柱直接供八字解讀使用 | iztro 計算精確（含節氣），不讓 LLM 重算曆法 |
-| 2026-03-18 | 學派聲明：標準安星法 + 通用解讀原則 | iztro v2.3.0+ 支援多派配置 |
-| 2026-03-20 | 人類圖用 simple-bodygraph（0.5 cr）+ 本地推導 | `/v1/bodygraph` 是付費端點（403）；Strategy/Authority 是確定性規則，可本地計算 |
-| 2026-03-20 | Strategy/NotSelf/Signature 本地查表，Authority 從 defined centers 推導 | 無額外 API 費用；結果與付費端點一致 |
-| 2026-03-20 | `Promise.allSettled` 並行呼叫 Gemini + HD API | 兩個 API 獨立，並行省 ~3 秒；partial failure 各自處理不互相影響 |
-| 2026-03-20 | 交叉分析用 Gemini 三層模型（test/normal/premium），介面切換 | 使用者可選擇分析品質 vs 速度/費用；預設 test（gemini-2.5-flash 免費） |
-| 2026-03-20 | 交叉分析在八字/人類圖完成後接續呼叫（不並行） | 需要兩系統的結果作為 prompt 輸入；progressive rendering 讓使用者先看到個別結果 |
-| 2026-03-20 | 紫微命盤改為 CSS grid 四方盤（取代 2-col 列表） | 傳統排列更直覺；地支→grid 位置 mapping |
-| 2026-03-20 | 流年用 iztro `.horoscope()` 純前端計算 | 零 API 費用；iztro 已支援大限/流年/流月/流日 |
-| 2026-03-20 | 截圖用 html-to-image（toPng） | 比 html2canvas 更輕量、SVG 支援更好 |
+| 2026-03-27 | BYOK：用戶自帶 API Key，不存 localStorage | 部署後不想用自己的 key 付費；不存避免誤會 |
+| 2026-03-27 | 多供應商：Gemini/OpenAI/Anthropic 三選一 | 用戶可能有不同供應商的 key |
+| 2026-03-27 | Human Design 維持 server-side key | 該 API 註冊門檻高，一般用戶不會有 |
+| 2026-03-27 | 品牌命名「命運手記 Fate Notes」 | Edward 選定 |
+| 2026-03-20 | 人類圖用 simple-bodygraph（0.5 cr）+ 本地推導 | `/v1/bodygraph` 是付費端點 |
+| 2026-03-20 | `Promise.allSettled` 並行呼叫 | 兩個 API 獨立，partial failure 不互相影響 |
+| 2026-03-18 | 八字用 LLM structured output，不用 Python 庫 | npm 替代方案品質不足 |
+| 2026-03-18 | iztro 四柱直接供八字解讀使用 | iztro 計算精確（含節氣） |
+
+---
+
+## 模型對應表（2026-03 最新）
+
+| 層級 | Gemini | OpenAI | Anthropic |
+|------|--------|--------|-----------|
+| 快速 | gemini-2.5-flash | gpt-4.1-mini | claude-haiku-4-5-20251001 |
+| 標準 | gemini-3-flash-preview | gpt-4.1 | claude-sonnet-4-6 |
+| 深入 | gemini-3.1-pro-preview | o4-mini | claude-opus-4-6 |
 
 ---
 
 ## 已知問題 / 注意事項
 
-- **Gemini API**：需要 Google AI Studio Tier 1（已設定計費）；model = `gemini-2.5-flash`
 - **HD API**：free tier 100 credits/月（0.5 cr/request）= 200 次/月
 - **城市欄位**：60+ 城市 mapping，找不到的 fallback 到 `+08:00`
-- **布局排序**：交叉分析 → 八字 → 人類圖 → 紫微基本資訊 → 命盤圖 → 流年
-- **Grammarly 警告**：`suppressHydrationWarning` 已加在 `<body>`，無功能影響
-- **BodyGraph 人形 SVG**：P3 延後，目前為純能量中心圖表，未來可加回冥想人形
+- **首頁 JS 460 kB**：主要是 iztro 套件，可觀察但暫不優化
 
 ---
 
-## Sprint 6 候選（待規劃）
+## Sprint 7 候選（待規劃）
 
-優先序：
-1. **Vercel 部署** — 讓朋友可以用
-2. **UI 精緻化** — 命盤圖 tooltip、流年年份切換
-3. **分享連結** — URL params 帶入出生資料
+1. **UI 精緻化** — 命盤圖 tooltip、流年年份切換
+2. **分享連結** — URL params 帶入出生資料
+3. **Rate limiting** — HD API 每 IP 每天限次，防濫用
 
 ---
 
 ## 檔案結構（當前）
 
 ```
-fate-map/
+fate-notes/
 ├── CLAUDE.md
-├── .env.local               ← GEMINI_API_KEY + HUMAN_DESIGN_API_KEY
-├── .env.local.example
+├── .env.local               ← HUMAN_DESIGN_API_KEY（server-side only）
 ├── .context/
 │   ├── PRE_SPRINT.md
 │   └── STATUS.md            ← 本檔案
 ├── app/
-│   ├── page.tsx             ← 主頁（表單 + 模型選擇器 + 結果 + 截圖按鈕）
-│   ├── layout.tsx
-│   ├── globals.css
+│   ├── page.tsx             ← 主頁（BYOK 設定 + 表單 + 結果）
+│   ├── layout.tsx           ← metadata + OG tags
 │   └── api/
-│       ├── analyze/
-│       │   └── route.ts     ← Gemini 八字分析
-│       ├── cross-analysis/
-│       │   └── route.ts     ← Gemini 交叉分析
-│       ├── human-design/
-│       │   └── route.ts     ← humandesignhub.app + 本地推導
-│       └── models/
-│           └── route.ts     ← Gemini 模型列表
+│       ├── analyze/route.ts         ← 八字分析（多供應商）
+│       ├── cross-analysis/route.ts  ← 交叉分析（多供應商）
+│       └── human-design/route.ts    ← humandesignhub.app（server-side key）
 ├── components/
-│   ├── BirthForm.tsx        ← 含城市欄位
+│   ├── BirthForm.tsx
 │   ├── BaziCard.tsx
-│   ├── BodyGraph.tsx        ← 人類圖能量中心 SVG
+│   ├── BodyGraph.tsx
 │   ├── CrossAnalysisCard.tsx
+│   ├── ExpandableSection.tsx
+│   ├── HistoryPanel.tsx
 │   ├── HumanDesignCard.tsx
-│   ├── ShareButton.tsx      ← Sprint 5 新增（截圖下載）
+│   ├── ProfileOverviewCard.tsx
+│   ├── ShareButton.tsx
 │   ├── Tooltip.tsx
-│   ├── YearlyFortuneCard.tsx ← Sprint 5 新增（流年運勢）
-│   └── ZiweiChart.tsx       ← Sprint 5 新增（命盤四方盤）
-└── utils/
-    ├── glossary.ts
-    ├── hd-gates.ts
-    ├── iztro-helpers.ts     ← Sprint 5 擴展（getYearlyFortune）
-    ├── timezone.ts
-    └── zodiac.ts
+│   ├── YearlyFortuneCard.tsx
+│   └── ZiweiChart.tsx
+├── utils/
+│   ├── ai-provider.ts      ← Sprint 6 新增（Provider 抽象層）
+│   ├── astro-calc.ts
+│   ├── geocode.ts
+│   ├── glossary.ts
+│   ├── hd-gates.ts
+│   ├── history.ts
+│   ├── iztro-helpers.ts
+│   ├── timezone.ts
+│   └── zodiac.ts
+└── public/
+    └── favicon.svg          ← Sprint 6 新增
 ```

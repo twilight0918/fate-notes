@@ -1,12 +1,14 @@
-# fate-map — Claude Code 專案指引
+# 命運手記 Fate Notes — Claude Code 專案指引
 
 建立日期：2026-03-18
+最後更新：2026-03-27
 
 ## 專案概覽
 
 **目標**：輸入生日時間，同時跑紫微斗數、八字、人類圖、星座，用 AI 交叉比對分析，產出去模糊化的綜合命理報告。
 **核心用戶**：Edward 的朋友圈（懂命理、會檢驗排盤精準度）
-**部署**：Vercel（目標 URL 公開）
+**線上版**：https://fate-notes.vercel.app
+**GitHub**：https://github.com/twilight0918/fate-notes
 **Notion PRD**：https://www.notion.so/3275237d8fdf818eb807dac49b129337
 
 ---
@@ -23,12 +25,12 @@
 ## 技術棧
 
 - **框架**：Next.js 15（App Router, TypeScript）
-- **UI**：TailwindCSS + Shadcn/UI
+- **UI**：TailwindCSS
 - **紫微排盤**：iztro（npm，本地計算，零 API 費用）
-- **八字**：iztro 四柱 → Claude API structured output 解讀
-- **人類圖**：humandesignhub.app API（free tier，Sprint 3）
-- **星座**：靜態查詢表（utils/zodiac.ts）
-- **LLM**：Claude API（@anthropic-ai/sdk）
+- **八字**：iztro 四柱 → LLM structured output 解讀
+- **人類圖**：humandesignhub.app API（free tier）
+- **星座**：靜態查詢表 + 月亮/上升星座計算
+- **LLM**：BYOK 多供應商（Gemini / OpenAI / Anthropic）
 - **部署**：Vercel
 
 ---
@@ -36,7 +38,7 @@
 ## 資料夾結構
 
 ```
-fate-map/
+fate-notes/
 ├── CLAUDE.md               # 本檔案
 ├── .context/
 │   ├── PRE_SPRINT.md       # 技術選型研究（2026-03-18）
