@@ -1,5 +1,5 @@
 # 命運手記 Fate Notes — 專案狀態
-最後更新：2026-03-27
+最後更新：2026-09-08
 
 ---
 
@@ -12,15 +12,9 @@
 
 ## 當前 Phase
 
-**Sprint 6**：部署上線 + BYOK 多供應商 ✅ 完成
+**Sprint 7**：復工整備（模型更新 + API Key 免重貼）✅ 完成
 
-**完成項目：**
-- [x] BYOK 多供應商支援（Gemini / OpenAI / Anthropic）
-- [x] 三種分析模式（快速/標準/深入）+ 各供應商最新模型
-- [x] 品牌更名：命運手記 Fate Notes
-- [x] 部署前清理（移除 debug route、錯誤訊息通用化、OG metadata、favicon）
-- [x] GitHub repo 建立 + Vercel 部署
-- [x] Human Design API Key 維持 server-side
+詳見下方「Sprint 7（2026-09-08）」段。
 
 ---
 
@@ -68,6 +62,8 @@
 
 | 日期 | 決策 | 理由 |
 |------|------|------|
+| 2026-09-08 | API Key 改存 sessionStorage（per provider） | 每次重整都要重貼是實際使用時最大的摩擦；sessionStorage 分頁關掉就沒，不落硬碟，維持 2026-03-27「不進 localStorage」的原意 |
+| 2026-09-08 | Gemini 改用 `-latest` 別名而非釘版本 | 停工五個月後回來，釘的 preview 版隨時可能下架；別名讓這張表不會再過期 |
 | 2026-03-27 | BYOK：用戶自帶 API Key，不存 localStorage | 部署後不想用自己的 key 付費；不存避免誤會 |
 | 2026-03-27 | 多供應商：Gemini/OpenAI/Anthropic 三選一 | 用戶可能有不同供應商的 key |
 | 2026-03-27 | Human Design 維持 server-side key | 該 API 註冊門檻高，一般用戶不會有 |
@@ -79,13 +75,18 @@
 
 ---
 
-## 模型對應表（2026-03 最新）
+## 模型對應表（2026-09-08 更新）
 
 | 層級 | Gemini | OpenAI | Anthropic |
 |------|--------|--------|-----------|
-| 快速 | gemini-2.5-flash | gpt-4.1-mini | claude-haiku-4-5-20251001 |
-| 標準 | gemini-3-flash-preview | gpt-4.1 | claude-sonnet-4-6 |
-| 深入 | gemini-3.1-pro-preview | o4-mini | claude-opus-4-6 |
+| 快速 | gemini-flash-lite-latest | gpt-4.1-mini ⚠️ | claude-haiku-4-5 |
+| 標準 | gemini-flash-latest | gpt-4.1 ⚠️ | claude-sonnet-5 |
+| 深入 | gemini-pro-latest | o4-mini ⚠️ | claude-opus-5 |
+
+- Gemini 改用 `-latest` 別名，不再釘 preview 版（`gemini-3-flash-preview` /
+  `gemini-3.1-pro-preview` 這類 preview build 會無預警下架）。三個別名
+  2026-09-08 實測可生成。
+- ⚠️ OpenAI 三個 ID 是 2026-03 的，2026-09-08 沒有 key 可驗，可能已下架。
 
 ---
 
@@ -97,11 +98,30 @@
 
 ---
 
-## Sprint 7 候選（待規劃）
+## Sprint 7（2026-09-08）✅ 完成
 
-1. **UI 精緻化** — 命盤圖 tooltip、流年年份切換
-2. **分享連結** — URL params 帶入出生資料
-3. **Rate limiting** — HD API 每 IP 每天限次，防濫用
+停工五個多月後的復工。目標是「能直接拿來用」，不是加功能。
+
+- [x] 模型對應表全面更新（見上表）；Gemini 改別名、Anthropic 換 5 系
+- [x] API Key 存 sessionStorage，分頁生命週期內免重貼（不落 localStorage/硬碟）
+- [x] 更名 commit `d68e06a` 補推（2026-04-03 卡在本機五個月，線上跑的是更名前那版）
+
+**復工時實測（2026-09-08）**：Gemini 三檔位可生成、人類圖 API key 有效且有額度、
+線上 `/api/analyze` 端到端 HTTP 200、`npm run build` 通過。
+
+### Edward 明確裁決不做
+
+- **流年年份切換** — 不做。「通常流年也只看今年」。
+  （`getYearlyFortune(input, targetYear?)` 本來就吃年份參數，`page.tsx` 不傳＝取今年，維持現狀）
+- **HD API rate limiting** — 不做。自己用，不散連結。
+- **紀錄匯出／匯入** — 不做。
+
+### 仍未做
+
+1. **命盤圖 tooltip** — 查驗後發現 Sprint 5 就做了（ZiweiChart / YearlyFortuneCard 皆已接 Tooltip），原紀錄漏更新
+2. **分享連結** — URL params 帶入出生資料，未做
+3. **錯誤訊息過於通用** — 部署前一律改成同一句，實際使用時 401（key 錯）跟 429（額度滿）看起來一樣
+4. **首頁 460 kB** — iztro 佔大宗，可 dynamic import，純潔癖
 
 ---
 

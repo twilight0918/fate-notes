@@ -7,13 +7,22 @@ import OpenAI from "openai";
 export type Provider = "gemini" | "openai" | "anthropic";
 export type ModelTier = "fast" | "standard" | "deep";
 
-// ─── Model Map (verified 2026-03) ───────────────────────────────────────────
+// ─── Model Map (verified 2026-09-08) ────────────────────────────────────────
+//
+// Gemini: use the "-latest" aliases rather than pinned preview IDs. The
+// previous map pinned gemini-3-flash-preview / gemini-3.1-pro-preview, which
+// are preview builds that get retired without notice. Aliases always resolve
+// to the current model, so this map does not go stale between sprints.
+// All three verified live against the Generative Language API on 2026-09-08.
+//
+// OpenAI: NOT re-verified (no key available on 2026-09-08). IDs are from
+// 2026-03 and may have been retired — check before relying on this provider.
 
 const MODEL_MAP: Record<Provider, Record<ModelTier, string>> = {
   gemini: {
-    fast: "gemini-2.5-flash",
-    standard: "gemini-3-flash-preview",
-    deep: "gemini-3.1-pro-preview",
+    fast: "gemini-flash-lite-latest",
+    standard: "gemini-flash-latest",
+    deep: "gemini-pro-latest",
   },
   openai: {
     fast: "gpt-4.1-mini",
@@ -21,14 +30,20 @@ const MODEL_MAP: Record<Provider, Record<ModelTier, string>> = {
     deep: "o4-mini",
   },
   anthropic: {
-    fast: "claude-haiku-4-5-20251001",
-    standard: "claude-sonnet-4-6",
-    deep: "claude-opus-4-6",
+    fast: "claude-haiku-4-5",
+    standard: "claude-sonnet-5",
+    deep: "claude-opus-5",
   },
 };
 
 export function getModelId(provider: Provider, tier: ModelTier): string {
   return MODEL_MAP[provider][tier];
+}
+
+// sessionStorage key holding the user's BYOK key for one provider. Scoped per
+// provider so switching providers does not carry the wrong key across.
+export function apiKeyStorageKey(provider: Provider): string {
+  return `fate-notes-apikey-${provider}`;
 }
 
 // ─── Provider display info ──────────────────────────────────────────────────

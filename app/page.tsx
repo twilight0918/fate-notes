@@ -19,7 +19,7 @@ import { getHistory, saveRecord, deleteRecord, clearHistory, type HistoryRecord 
 import type { AnalyzeRequest, BaziAnalysis } from "@/app/api/analyze/route";
 import type { HumanDesignResult } from "@/app/api/human-design/route";
 import type { CrossAnalysis, CrossAnalysisRequest } from "@/app/api/cross-analysis/route";
-import { PROVIDER_OPTIONS, TIER_OPTIONS, getModelDisplayName, type Provider, type ModelTier } from "@/utils/ai-provider";
+import { PROVIDER_OPTIONS, TIER_OPTIONS, getModelDisplayName, apiKeyStorageKey, type Provider, type ModelTier } from "@/utils/ai-provider";
 import Tooltip from "@/components/Tooltip";
 import { getTooltipProps } from "@/utils/glossary";
 
@@ -103,6 +103,17 @@ export default function HomePage() {
   useEffect(() => {
     setHistory(getHistory());
   }, []);
+
+  // Restore the API key for the selected provider. sessionStorage, not
+  // localStorage: the key survives a reload but is dropped when the tab
+  // closes, so it never sits on disk between browser sessions.
+  useEffect(() => {
+    try {
+      setUserApiKey(sessionStorage.getItem(apiKeyStorageKey(provider)) ?? "");
+    } catch {
+      // sessionStorage blocked (private mode, site data disabled) — start empty.
+    }
+  }, [provider]);
 
   async function handleSubmit(data: BirthFormData) {
     setUserName(data.name.trim());
@@ -411,10 +422,20 @@ export default function HomePage() {
             <input
               type="password"
               value={userApiKey}
-              onChange={(e) => setUserApiKey(e.target.value)}
+              onChange={(e) => {
+                setUserApiKey(e.target.value);
+                try {
+                  sessionStorage.setItem(apiKeyStorageKey(provider), e.target.value);
+                } catch {
+                  // sessionStorage blocked — the key stays in memory only.
+                }
+              }}
               placeholder={`填入你的 ${PROVIDER_OPTIONS.find(p => p.value === provider)?.label ?? ""} API Key`}
               className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500 placeholder-slate-600"
             />
+            <p className="text-slate-500 text-xs mt-1">
+              這個分頁關掉前都會記住，不會寫進硬碟
+            </p>
           </div>
           {/* 分析模式 */}
           <div>
