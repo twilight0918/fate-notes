@@ -5,7 +5,7 @@ import Tooltip from "@/components/Tooltip";
 import ExpandableSection from "@/components/ExpandableSection";
 import { getTooltipProps, getValueDesc, normalizePalaceName } from "@/utils/glossary";
 
-const MUTAGEN_LABELS = ["化祿", "化權", "化科", "化忌"] as const;
+export const MUTAGEN_LABELS = ["化祿", "化權", "化科", "化忌"] as const;
 const MUTAGEN_COLORS = [
   "text-green-400",   // 祿
   "text-amber-400",   // 權
@@ -14,7 +14,7 @@ const MUTAGEN_COLORS = [
 ];
 
 /** 四化落入宮位的白話影響 — 用於流年解讀面板 */
-const MUTAGEN_YEARLY_EFFECT: Record<string, string> = {
+export const MUTAGEN_YEARLY_EFFECT: Record<string, string> = {
   "化祿": "這個領域今年會比較順利，容易有收穫和好運",
   "化權": "這個領域今年你會更有主導權和決策力",
   "化科": "這個領域今年容易得到貴人相助或獲得認可",
@@ -22,7 +22,7 @@ const MUTAGEN_YEARLY_EFFECT: Record<string, string> = {
 };
 
 /** 四化的白話定位說明 — 用於解釋每個四化「是什麼」 */
-const MUTAGEN_PLAIN_DESC: Record<string, string> = {
+export const MUTAGEN_PLAIN_DESC: Record<string, string> = {
   "化祿": "化祿落在哪顆星所在的宮位，那個領域今年比較順，容易有好事",
   "化權": "化權落在哪顆星所在的宮位，那個領域今年你會更有掌控力和決策權",
   "化科": "化科落在哪顆星所在的宮位，那個領域今年容易得貴人、被看見",

@@ -1,7 +1,7 @@
 "use client";
 
 // ─── MBTI Chinese name mapping ────────────────────────────────────────────────
-const MBTI_CN: Record<string, string> = {
+export const MBTI_CN: Record<string, string> = {
   INTJ: "建築師", INTP: "邏輯學家", ENTJ: "指揮官", ENTP: "辯論家",
   INFJ: "提倡者", INFP: "調停者", ENFJ: "主人公", ENFP: "競選者",
   ISTJ: "物流師", ISFJ: "守衛者", ESTJ: "總經理", ESFJ: "執政官",
@@ -9,7 +9,7 @@ const MBTI_CN: Record<string, string> = {
 };
 
 // ─── Enneagram Chinese name mapping ──────────────────────────────────────────
-const ENNEAGRAM_CN: Record<number, string> = {
+export const ENNEAGRAM_CN: Record<number, string> = {
   1: "完美主義者", 2: "助人者", 3: "成就者",
   4: "個人主義者", 5: "觀察者", 6: "忠誠者",
   7: "享樂主義者", 8: "挑戰者", 9: "和平者",

@@ -18,7 +18,7 @@ interface ZiweiChartProps {
 
 // ─── Grid mapping: earthly branch → CSS grid position (1-indexed) ────────────
 
-const BRANCH_GRID: Record<string, { row: number; col: number }> = {
+export const BRANCH_GRID: Record<string, { row: number; col: number }> = {
   "巳": { row: 1, col: 1 }, "午": { row: 1, col: 2 }, "未": { row: 1, col: 3 }, "申": { row: 1, col: 4 },
   "辰": { row: 2, col: 1 },                                                     "酉": { row: 2, col: 4 },
   "卯": { row: 3, col: 1 },                                                     "戌": { row: 3, col: 4 },

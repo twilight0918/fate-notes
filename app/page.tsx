@@ -7,7 +7,7 @@ import HumanDesignCard from "@/components/HumanDesignCard";
 import CrossAnalysisCard from "@/components/CrossAnalysisCard";
 import ZiweiChart from "@/components/ZiweiChart";
 import YearlyFortuneCard from "@/components/YearlyFortuneCard";
-import ShareButton from "@/components/ShareButton";
+import DownloadReportButton from "@/components/DownloadReportButton";
 import ProfileOverviewCard from "@/components/ProfileOverviewCard";
 import HistoryPanel from "@/components/HistoryPanel";
 import { getZiweiChart, getYearlyFortune, type ZiweiResult, type YearlyFortune } from "@/utils/iztro-helpers";
@@ -95,7 +95,7 @@ export default function HomePage() {
   const [userApiKey, setUserApiKey] = useState("");
   const [modelTier, setModelTier] = useState<ModelTier>("standard");
   const [userName, setUserName] = useState("");
-  const [captureMode, setCaptureMode] = useState(false);
+  const [birthData, setBirthData] = useState<BirthFormData | null>(null);
   const [history, setHistory] = useState<HistoryRecord[]>([]);
   const [userMbti, setUserMbti] = useState<string | undefined>();
   const [userEnneagram, setUserEnneagram] = useState<number | undefined>();
@@ -117,6 +117,7 @@ export default function HomePage() {
   }, [provider]);
 
   async function handleSubmit(data: BirthFormData) {
+    setBirthData(data);
     setUserName(data.name.trim());
     setUserMbti(data.mbti || undefined);
     setUserEnneagram(data.enneagram || undefined);
@@ -358,6 +359,7 @@ export default function HomePage() {
 
   function handleLoadHistory(record: HistoryRecord) {
     // Restore all state from history
+    setBirthData(record.birthData);
     setUserName(record.birthData.name?.trim() || "");
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const bd = record.birthData as any;
@@ -499,14 +501,19 @@ export default function HomePage() {
       {result && (
         <div className="space-y-4">
           {/* Share button */}
-          {!isLoading && !isCrossLoading && (
+          {!isLoading && !isCrossLoading && birthData && (
             <div className="flex justify-end">
-              <ShareButton
-                targetId="fate-result"
-                fileName={userName ? `${userName}-fate-notes` : "fate-notes-report"}
-                label="下載完整報告"
-                onBeforeCapture={async () => setCaptureMode(true)}
-                onAfterCapture={() => setCaptureMode(false)}
+              <DownloadReportButton
+                getData={() => ({
+                  birthData,
+                  ziwei: result.ziwei,
+                  zodiac: result.zodiac,
+                  yearlyFortune: result.yearlyFortune,
+                  baziAnalysis,
+                  humanDesign,
+                  crossAnalysis,
+                  generatedAt: new Date().toISOString(),
+                })}
               />
             </div>
           )}
@@ -562,7 +569,7 @@ export default function HomePage() {
 
           {/* 人類圖分析 */}
           {humanDesign && (
-            <HumanDesignCard result={humanDesign} captureMode={captureMode} />
+            <HumanDesignCard result={humanDesign} />
           )}
 
           {/* 紫微 + 星座基本資訊 */}
@@ -655,11 +662,10 @@ export default function HomePage() {
             soul={result.ziwei.soul}
             body={result.ziwei.body}
             lunarDate={result.ziwei.lunarDate}
-            captureMode={captureMode}
           />
 
           {/* 流年運勢 */}
-          <YearlyFortuneCard fortune={result.yearlyFortune} captureMode={captureMode} />
+          <YearlyFortuneCard fortune={result.yearlyFortune} />
 
           </div>{/* end #fate-result */}
 

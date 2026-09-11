@@ -21,7 +21,7 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 // Chinese type names (official translations)
-const TYPE_CN: Record<string, string> = {
+export const TYPE_CN: Record<string, string> = {
   "Generator":             "生產者",
   "Manifesting Generator": "顯示生產者",
   "Projector":             "投射者",
@@ -30,13 +30,13 @@ const TYPE_CN: Record<string, string> = {
 };
 
 // 9 centers in display order (body anatomy top → bottom)
-const CENTER_DISPLAY_ORDER = [
+export const CENTER_DISPLAY_ORDER = [
   "Head", "Ajna", "Throat", "G", "Heart",
   "Sacral", "Solar Plexus", "Spleen", "Root",
 ];
 
 // Chinese names for centers
-const CENTER_LABELS: Record<string, string> = {
+export const CENTER_LABELS: Record<string, string> = {
   "Head":         "頭腦中心",
   "Ajna":         "直覺中心",
   "Throat":       "喉嚨中心",
