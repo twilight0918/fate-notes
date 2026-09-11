@@ -27,7 +27,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-TW">
-      <body className="bg-slate-950 text-slate-100 min-h-screen" suppressHydrationWarning>
+      <head>
+        {/* 標題用明體；載不到時退回系統明體（globals.css／tailwind.config.ts 的 font-serif） */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700&display=swap" />
+      </head>
+      <body className="min-h-screen" suppressHydrationWarning>
         {children}
       </body>
     </html>

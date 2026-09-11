@@ -2,6 +2,62 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 紙本手帳配色（與 utils/report-html.ts 的 HTML 報告同一套）。值是 RGB 三元組，給 Tailwind 的透明度用。 */
+@layer base {
+  :root {
+    --paper: 246 241 231;
+    --card: 255 253 248;
+    --ink: 42 37 32;
+    --muted: 111 102 91;
+    --line: 226 217 200;
+    --accent: 163 64 44;
+    --accent-soft: 243 227 216;
+    --gold: 154 116 36;
+    --wood: 78 122 70;
+    --fire: 176 69 47;
+    --earth: 139 90 43;
+    --metal: 176 136 24;
+    --water: 47 92 135;
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: 25 23 18;
+      --card: 34 31 25;
+      --ink: 236 229 216;
+      --muted: 188 179 164;
+      --line: 56 50 42;
+      --accent: 224 138 108;
+      --accent-soft: 58 39 32;
+      --gold: 210 173 94;
+      --wood: 143 191 133;
+      --fire: 236 138 114;
+      --earth: 201 150 102;
+      --metal: 226 192 92;
+      --water: 134 179 220;
+      color-scheme: dark;
+      /* 標準人體圖（components/BodyGraphStandard.tsx）的深色配色 */
+      --hdg-open: #221f19;
+      --hdg-stroke: #4a443b;
+      --hdg-channel: #322d26;
+      --hdg-active: #ece5d8;
+      --hdg-num: #7d7568;
+      --hdg-num-on: #191712;
+    }
+  }
+
+  body {
+    @apply bg-paper text-ink font-sans antialiased;
+    letter-spacing: 0.02em;
+  }
+
+  h1, h2, h3 {
+    @apply font-serif;
+    letter-spacing: 0.04em;
+  }
+}
+
 @layer components {
   /* Unified progress bar — fills over ~45 seconds (both analysis phases) */
   @keyframes progressBarFill {
@@ -18,5 +74,9 @@
 
   .progress-bar-fill {
     animation: progressBarFill 45s ease-out forwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .progress-bar-fill { animation-duration: 0s; width: 94%; }
   }
 }

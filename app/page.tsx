@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import BirthForm, { type BirthFormData } from "@/components/BirthForm";
 import BaziCard from "@/components/BaziCard";
 import HumanDesignCard from "@/components/HumanDesignCard";
@@ -15,7 +15,7 @@ import { getZodiacSign, type ZodiacInfo } from "@/utils/zodiac";
 import { buildISODatetime } from "@/utils/timezone";
 import { geocodeCity } from "@/utils/geocode";
 import { calculateAstro } from "@/utils/astro-calc";
-import { UNKNOWN_TIME } from "@/utils/birth-time";
+import { UNKNOWN_TIME, formatBirthTime } from "@/utils/birth-time";
 import { getHistory, saveRecord, deleteRecord, clearHistory, type HistoryRecord } from "@/utils/history";
 import type { AnalyzeRequest, BaziAnalysis } from "@/app/api/analyze/route";
 import type { HumanDesignResult } from "@/app/api/human-design/route";
@@ -52,28 +52,30 @@ function AnalysisProgress({ phase }: { phase: "initial" | "cross" }) {
 
   const currentStep = PROGRESS_STEPS[stepIdx] ?? PROGRESS_STEPS[0];
   const isCrossPhase = currentStep.phase === "cross";
-  const dotColor = isCrossPhase ? "bg-violet-500" : "bg-cyan-500";
-  const textColor = isCrossPhase ? "text-violet-400" : "text-cyan-400";
-  const barGradient = "from-cyan-500 via-indigo-500 to-violet-500";
+  const dotColor = isCrossPhase ? "bg-accent" : "bg-gold";
+  const textColor = isCrossPhase ? "text-accent" : "text-gold";
+  const barGradient = "from-gold via-earth to-accent";
   const title = isCrossPhase ? "AI 交叉分析中" : "AI 分析中（八字 + 人類圖）";
 
   return (
-    <div className="bg-slate-900 border border-indigo-500/30 rounded-2xl p-6">
+    <div className="bg-card border border-line rounded-2xl p-6">
       <div className="flex items-center gap-3 mb-3">
         <div className={`w-4 h-4 rounded-full ${dotColor} animate-pulse flex-shrink-0 transition-colors duration-500`} />
         <p className={`${textColor} text-sm font-medium transition-colors duration-500`}>{title}</p>
       </div>
       {/* Single continuous progress bar */}
-      <div className="w-full bg-slate-800 rounded-full h-1.5 mb-3 overflow-hidden">
+      <div className="w-full bg-line rounded-full h-1.5 mb-3 overflow-hidden">
         <div className={`h-full bg-gradient-to-r ${barGradient} rounded-full progress-bar-fill`} />
       </div>
       {/* Step text */}
-      <p className="text-slate-400 text-xs transition-all duration-300">
+      <p className="text-muted text-xs transition-all duration-300">
         {currentStep.text}
       </p>
     </div>
   );
 }
+
+type TabId = "overview" | "bazi" | "ziwei" | "zodiac" | "hd" | "yearly";
 
 interface PageResult {
   ziwei: ZiweiResult;
@@ -99,6 +101,9 @@ export default function HomePage() {
   const [history, setHistory] = useState<HistoryRecord[]>([]);
   const [userMbti, setUserMbti] = useState<string | undefined>();
   const [userEnneagram, setUserEnneagram] = useState<number | undefined>();
+  const [activeTab, setActiveTab] = useState<TabId>("overview");
+  const [showInput, setShowInput] = useState(true);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   // Load history from localStorage on mount
   useEffect(() => {
@@ -118,6 +123,8 @@ export default function HomePage() {
 
   async function handleSubmit(data: BirthFormData) {
     setBirthData(data);
+    setActiveTab("overview");
+    setShowInput(false);
     setUserName(data.name.trim());
     setUserMbti(data.mbti || undefined);
     setUserEnneagram(data.enneagram || undefined);
@@ -360,6 +367,9 @@ export default function HomePage() {
   function handleLoadHistory(record: HistoryRecord) {
     // Restore all state from history
     setBirthData(record.birthData);
+    setActiveTab("overview");
+    setShowInput(false);
+    window.scrollTo({ top: 0 });
     setUserName(record.birthData.name?.trim() || "");
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const bd = record.birthData as any;
@@ -390,291 +400,349 @@ export default function HomePage() {
     setHistory([]);
   }
 
+  const tabs: { id: TabId; label: string }[] = result
+    ? [
+        { id: "overview", label: "總覽" },
+        ...(baziAnalysis ? [{ id: "bazi" as const, label: "八字" }] : []),
+        { id: "ziwei", label: "紫微" },
+        { id: "zodiac", label: "星座" },
+        ...(humanDesign ? [{ id: "hd" as const, label: "人類圖" }] : []),
+        { id: "yearly", label: "流年" },
+      ]
+    : [];
+  const currentTab: TabId = tabs.some((t) => t.id === activeTab) ? activeTab : "overview";
+  const isBusy = isLoading || isCrossLoading;
+
+  function selectTab(id: TabId) {
+    setActiveTab(id);
+    // 分頁籤黏在上方時，換頁要回到內容開頭，不然會停在上一頁的捲動位置
+    const top = resultsRef.current?.getBoundingClientRect().top ?? 0;
+    if (top < 0) resultsRef.current?.scrollIntoView({ block: "start" });
+  }
+
+  function handleTabKey(e: React.KeyboardEvent<HTMLButtonElement>) {
+    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+    const i = tabs.findIndex((t) => t.id === currentTab);
+    const next = tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
+    selectTab(next.id);
+    document.getElementById(`tab-${next.id}`)?.focus();
+  }
+
   return (
-    <main className="max-w-2xl mx-auto px-4 py-12">
+    <main className="max-w-3xl mx-auto px-4 pt-6 sm:pt-10 pb-16">
       {/* Header */}
-      <div className="text-center mb-10">
-        <h1 className="text-3xl font-bold text-white mb-2">命運手記</h1>
-        <p className="text-slate-400 text-sm">
+      <header className="text-center mb-5 sm:mb-8">
+        <p className="text-accent text-xs tracking-[0.3em] mb-2">FATE NOTES</p>
+        <h1 className="font-serif text-3xl font-bold text-ink mb-2">命運手記</h1>
+        <p className="text-muted text-sm">
           紫微斗數 × 八字 × 人類圖 × 星座 — AI 多系統交叉比對
         </p>
-        <p className="text-slate-600 text-xs mt-2">
+        <p className="text-muted text-xs mt-2">
           本平台採標準安星法，解讀以通用原則為主，各命理學派可能有不同詮釋
         </p>
-      </div>
+      </header>
 
-      {/* BYOK API Key 設定 */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-6">
-        <h2 className="text-lg font-semibold text-slate-200 mb-4">AI 分析設定</h2>
-        <div className="space-y-3">
-          {/* 供應商選擇 */}
-          <div>
-            <label className="block text-sm text-slate-400 mb-1">AI 供應商</label>
-            <select
-              value={provider}
-              onChange={(e) => setProvider(e.target.value as Provider)}
-              className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
-            >
-              {PROVIDER_OPTIONS.map(({ value, label }) => (
-                <option key={value} value={value}>{label}</option>
-              ))}
-            </select>
-          </div>
-          {/* API Key 輸入 */}
-          <div>
-            <label className="block text-sm text-slate-400 mb-1">API Key</label>
-            <input
-              type="password"
-              value={userApiKey}
-              onChange={(e) => {
-                setUserApiKey(e.target.value);
-                try {
-                  sessionStorage.setItem(apiKeyStorageKey(provider), e.target.value);
-                } catch {
-                  // sessionStorage blocked — the key stays in memory only.
-                }
-              }}
-              placeholder={`填入你的 ${PROVIDER_OPTIONS.find(p => p.value === provider)?.label ?? ""} API Key`}
-              className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500 placeholder-slate-600"
+      {/* 有結果時，輸入區收成一行；按「重新輸入」再展開 */}
+      {result && birthData && !showInput && (
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-y border-line py-3 mb-6 text-sm">
+          <p className="text-muted mr-auto">
+            <span className="text-ink font-medium">{birthData.name?.trim() || "未命名"}</span>
+            {"　"}
+            {birthData.year}/{birthData.month}/{birthData.day} {formatBirthTime(birthData)}
+          </p>
+          <button
+            type="button"
+            onClick={() => setShowInput(true)}
+            className="text-accent hover:underline underline-offset-4"
+          >
+            重新輸入／歷史紀錄
+          </button>
+          {!isBusy && (
+            <DownloadReportButton
+              getData={() => ({
+                birthData,
+                ziwei: result.ziwei,
+                zodiac: result.zodiac,
+                yearlyFortune: result.yearlyFortune,
+                baziAnalysis,
+                humanDesign,
+                crossAnalysis,
+                generatedAt: new Date().toISOString(),
+              })}
             />
-            <p className="text-slate-500 text-xs mt-1">
-              這個分頁關掉前都會記住，不會寫進硬碟
-            </p>
-          </div>
-          {/* 分析模式 */}
-          <div>
-            <label className="block text-sm text-slate-400 mb-1">分析模式</label>
-            <select
-              value={modelTier}
-              onChange={(e) => setModelTier(e.target.value as ModelTier)}
-              className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
-            >
-              {TIER_OPTIONS.map(({ value, label }) => (
-                <option key={value} value={value}>
-                  {label}（{getModelDisplayName(provider, value)}）
-                </option>
-              ))}
-            </select>
-          </div>
+          )}
         </div>
-      </div>
+      )}
 
-      {/* Form card */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-6">
-        <h2 className="text-lg font-semibold text-slate-200 mb-4">輸入出生資料</h2>
-        <BirthForm onSubmit={handleSubmit} isLoading={isLoading || !userApiKey.trim()} />
-        {!userApiKey.trim() && (
-          <p className="text-amber-500 text-xs mt-3">請先在上方填入 API Key 才能開始分析</p>
+      <div hidden={Boolean(result) && !showInput}>
+        {/* BYOK API Key 設定 */}
+        <section className="bg-card border border-line rounded-2xl p-6 mb-6">
+          <h2 className="text-lg font-semibold text-ink mb-4">AI 分析設定</h2>
+          <div className="space-y-3">
+            {/* 供應商選擇 */}
+            <div>
+              <label className="block text-sm text-muted mb-1">AI 供應商</label>
+              <select
+                value={provider}
+                onChange={(e) => setProvider(e.target.value as Provider)}
+                className="w-full bg-paper border border-line text-ink rounded-lg px-3 py-2 focus:outline-none focus:border-accent"
+              >
+                {PROVIDER_OPTIONS.map(({ value, label }) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
+            </div>
+            {/* API Key 輸入 */}
+            <div>
+              <label className="block text-sm text-muted mb-1">API Key</label>
+              <input
+                type="password"
+                value={userApiKey}
+                onChange={(e) => {
+                  setUserApiKey(e.target.value);
+                  try {
+                    sessionStorage.setItem(apiKeyStorageKey(provider), e.target.value);
+                  } catch {
+                    // sessionStorage blocked — the key stays in memory only.
+                  }
+                }}
+                placeholder={`填入你的 ${PROVIDER_OPTIONS.find(p => p.value === provider)?.label ?? ""} API Key`}
+                className="w-full bg-paper border border-line rounded-lg px-3 py-2 text-ink focus:outline-none focus:border-accent placeholder:text-muted/60"
+              />
+              <p className="text-muted text-xs mt-1">
+                這個分頁關掉前都會記住，不會寫進硬碟
+              </p>
+            </div>
+            {/* 分析模式 */}
+            <div>
+              <label className="block text-sm text-muted mb-1">分析模式</label>
+              <select
+                value={modelTier}
+                onChange={(e) => setModelTier(e.target.value as ModelTier)}
+                className="w-full bg-paper border border-line text-ink rounded-lg px-3 py-2 focus:outline-none focus:border-accent"
+              >
+                {TIER_OPTIONS.map(({ value, label }) => (
+                  <option key={value} value={value}>
+                    {label}（{getModelDisplayName(provider, value)}）
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </section>
+
+        {/* Form card */}
+        <section className="bg-card border border-line rounded-2xl p-6 mb-6">
+          <h2 className="text-lg font-semibold text-ink mb-4">輸入出生資料</h2>
+          <BirthForm onSubmit={handleSubmit} isLoading={isLoading} disabled={!userApiKey.trim()} />
+          {!userApiKey.trim() && (
+            <p className="text-fire text-xs mt-3">請先在上方填入 API Key 才能開始分析</p>
+          )}
+        </section>
+
+        {/* History panel */}
+        <HistoryPanel
+          records={history}
+          onLoad={handleLoadHistory}
+          onDelete={handleDeleteRecord}
+          onClearAll={handleClearHistory}
+        />
+
+        {result && (
+          <div className="text-center mb-6">
+            <button
+              type="button"
+              onClick={() => setShowInput(false)}
+              className="text-sm text-accent hover:underline underline-offset-4"
+            >
+              收起，回到結果
+            </button>
+          </div>
         )}
       </div>
 
-      {/* History panel */}
-      <HistoryPanel
-        records={history}
-        onLoad={handleLoadHistory}
-        onDelete={handleDeleteRecord}
-        onClearAll={handleClearHistory}
-      />
-
       {/* Error — 八字 */}
       {error && (
-        <div className="bg-red-900/30 border border-red-700 rounded-xl p-4 mb-6 text-red-300 text-sm">
+        <div className="bg-fire/10 border border-fire/40 rounded-xl p-4 mb-6 text-fire text-sm">
           {error}
         </div>
       )}
 
-      {/* Error — 人類圖（non-blocking, amber） */}
+      {/* Error — 人類圖（non-blocking） */}
       {hdError && (
-        <div className="bg-amber-900/30 border border-amber-700 rounded-xl p-4 mb-6 text-amber-300 text-sm">
+        <div className="bg-gold/10 border border-gold/40 rounded-xl p-4 mb-6 text-gold text-sm">
           {hdError}
         </div>
       )}
 
       {/* Error — 交叉分析 */}
       {crossError && (
-        <div className="bg-red-900/30 border border-red-700 rounded-xl p-4 mb-6 text-red-300 text-sm">
+        <div className="bg-fire/10 border border-fire/40 rounded-xl p-4 mb-6 text-fire text-sm">
           {crossError}
         </div>
       )}
 
-      {/* Results */}
+      {/* Results：封面結論 → 分頁籤 → 一次讀一個系統 */}
       {result && (
-        <div className="space-y-4">
-          {/* Share button */}
-          {!isLoading && !isCrossLoading && birthData && (
-            <div className="flex justify-end">
-              <DownloadReportButton
-                getData={() => ({
-                  birthData,
-                  ziwei: result.ziwei,
-                  zodiac: result.zodiac,
-                  yearlyFortune: result.yearlyFortune,
-                  baziAnalysis,
-                  humanDesign,
-                  crossAnalysis,
-                  generatedAt: new Date().toISOString(),
-                })}
-              />
+        <div ref={resultsRef} className="scroll-mt-0">
+          {/* Unified loading indicator — one continuous bar across both phases */}
+          {isBusy && (
+            <div className="mb-4">
+              <AnalysisProgress phase={isCrossLoading ? "cross" : "initial"} />
             </div>
           )}
 
-          {/* Unified loading indicator — one continuous bar across both phases */}
-          {(isLoading || isCrossLoading) && (
-            <AnalysisProgress phase={isCrossLoading ? "cross" : "initial"} />
-          )}
-
-          {/* Capturable area for screenshot */}
-          <div id="fate-result" className="space-y-4">
-
-          {/* 人格總覽卡 */}
-          {!isLoading && !isCrossLoading && (
-            <ProfileOverviewCard
-              name={userName || undefined}
-              ziwei={{
-                soulPalaceMajorStars: result.ziwei.palaces.find((p) => p.isSoulPalace)?.majorStars ?? [],
-                soul: result.ziwei.soul,
-                body: result.ziwei.body,
-              }}
-              bazi={baziAnalysis ? {
-                dayMaster: baziAnalysis.dayMaster,
-                dayMasterStrength: baziAnalysis.dayMasterStrength,
-                dominantElement: baziAnalysis.dominantElement,
-              } : undefined}
-              humanDesign={humanDesign ? {
-                type: humanDesign.type,
-                profile: humanDesign.profile,
-              } : undefined}
-              zodiac={{
-                sun: result.zodiac.sign,
-                moon: result.zodiac.moonSign,
-                rising: result.zodiac.risingSign,
-              }}
-              mbti={userMbti}
-              enneagram={userEnneagram}
-              tagline={crossAnalysis?.tagline}
-            />
-          )}
-
-          {/* 交叉分析 */}
-          {crossAnalysis && <CrossAnalysisCard analysis={crossAnalysis} name={userName || undefined} />}
-
-          {/* 八字 AI 分析 */}
-          {baziAnalysis && (
-            <BaziCard
-              analysis={baziAnalysis}
-              chineseDate={result.ziwei.chineseDate}
-              fiveElementsClass={result.ziwei.fiveElementsClass}
-            />
-          )}
-
-          {/* 人類圖分析 */}
-          {humanDesign && (
-            <HumanDesignCard result={humanDesign} />
-          )}
-
-          {/* 紫微 + 星座基本資訊 */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-            <h2 className="text-base font-semibold text-indigo-400 mb-4">
-              紫微斗數 × 星座
-            </h2>
-            <dl className="grid grid-cols-2 gap-3 text-sm">
-              {/* 陽曆 */}
-              <div className="bg-slate-800 rounded-lg p-3">
-                <dt className="text-slate-500 text-xs mb-1">
-                  <Tooltip {...getTooltipProps("ziwei.field.solarDate")}><span>陽曆</span></Tooltip>
-                </dt>
-                <dd className="text-white font-medium">{result.ziwei.solarDate}</dd>
-              </div>
-              {/* 農曆 */}
-              <div className="bg-slate-800 rounded-lg p-3">
-                <dt className="text-slate-500 text-xs mb-1">
-                  <Tooltip {...getTooltipProps("ziwei.field.lunarDate")}><span>農曆</span></Tooltip>
-                </dt>
-                <dd className="text-white font-medium">{result.ziwei.lunarDate}</dd>
-              </div>
-              {/* 四柱 */}
-              <div className="bg-slate-800 rounded-lg p-3">
-                <dt className="text-slate-500 text-xs mb-1">
-                  <Tooltip {...getTooltipProps("ziwei.field.chineseDate")}><span>四柱（干支）</span></Tooltip>
-                </dt>
-                <dd className="text-white font-medium">{result.ziwei.chineseDate}</dd>
-              </div>
-              {/* 五行局 */}
-              <div className="bg-slate-800 rounded-lg p-3">
-                <dt className="text-slate-500 text-xs mb-1">
-                  <Tooltip {...getTooltipProps("ziwei.field.fiveElementsClass")}><span>五行局</span></Tooltip>
-                </dt>
-                <dd className="text-white font-medium">{result.ziwei.fiveElementsClass}</dd>
-              </div>
-              {/* 命主星 */}
-              <div className="bg-slate-800 rounded-lg p-3">
-                <dt className="text-slate-500 text-xs mb-1">
-                  <Tooltip {...getTooltipProps("ziwei.field.soul", `ziwei.value.${result.ziwei.soul}`)}><span>命主星</span></Tooltip>
-                </dt>
-                <dd className="text-white font-medium">{result.ziwei.soul}</dd>
-              </div>
-              {/* 身主星 */}
-              <div className="bg-slate-800 rounded-lg p-3">
-                <dt className="text-slate-500 text-xs mb-1">
-                  <Tooltip {...getTooltipProps("ziwei.field.body", `ziwei.value.${result.ziwei.body}`)}><span>身主星</span></Tooltip>
-                </dt>
-                <dd className="text-white font-medium">{result.ziwei.body}</dd>
-              </div>
-              {/* 太陽星座 */}
-              <div className="bg-slate-800 rounded-lg p-3">
-                <dt className="text-slate-500 text-xs mb-1">
-                  <Tooltip {...getTooltipProps("ziwei.field.zodiacSign", `zodiac.value.${result.zodiac.element}`)}><span>☀️ 太陽星座</span></Tooltip>
-                </dt>
-                <dd className="text-white font-medium">{`${result.zodiac.sign}（${result.zodiac.element}象）`}</dd>
-              </div>
-              {/* 月亮星座 */}
-              <div className="bg-slate-800 rounded-lg p-3">
-                <dt className="text-slate-500 text-xs mb-1">
-                  <Tooltip {...getTooltipProps("zodiac.field.moonSign")}><span>🌙 月亮星座</span></Tooltip>
-                </dt>
-                <dd className={`font-medium ${result.zodiac.moonSign ? "text-white" : "text-slate-600 italic"}`}>
-                  {result.zodiac.moonSign ?? "計算中…"}
-                </dd>
-              </div>
-              {/* 上升星座 */}
-              <div className="bg-slate-800 rounded-lg p-3">
-                <dt className="text-slate-500 text-xs mb-1">
-                  <Tooltip {...getTooltipProps("zodiac.field.risingSign")}><span>⬆️ 上升星座</span></Tooltip>
-                </dt>
-                <dd className={`font-medium ${result.zodiac.risingSign ? "text-white" : "text-slate-600 italic"}`}>
-                  {result.zodiac.risingSign ?? "計算中…"}
-                </dd>
-              </div>
-              {/* 星座特質 */}
-              <div className="bg-slate-800 rounded-lg p-3">
-                <dt className="text-slate-500 text-xs mb-1">
-                  <Tooltip {...getTooltipProps("ziwei.field.zodiacTraits")}><span>太陽星座特質</span></Tooltip>
-                </dt>
-                <dd className="text-white font-medium">{result.zodiac.traits.join("、")}</dd>
-              </div>
-            </dl>
+          {/* 分頁籤（黏在上方） */}
+          <div className="sticky top-0 z-20 -mx-4 px-4 bg-paper/95 backdrop-blur border-b border-line mb-6">
+            <div role="tablist" aria-label="報告分頁" className="flex gap-1 overflow-x-auto [scrollbar-width:none]">
+              {tabs.map((t) => {
+                const selected = t.id === currentTab;
+                return (
+                  <button
+                    key={t.id}
+                    id={`tab-${t.id}`}
+                    type="button"
+                    role="tab"
+                    aria-selected={selected}
+                    aria-controls={`panel-${t.id}`}
+                    tabIndex={selected ? 0 : -1}
+                    onClick={() => selectTab(t.id)}
+                    onKeyDown={handleTabKey}
+                    className={`shrink-0 px-2 sm:px-3 pt-3 pb-2.5 text-[0.95rem] border-b-2 transition-colors ${
+                      selected
+                        ? "border-accent text-ink font-semibold"
+                        : "border-transparent text-muted hover:text-ink"
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          {/* 紫微命盤（四方盤） */}
-          <ZiweiChart
-            palaces={result.ziwei.palaces}
-            fiveElementsClass={result.ziwei.fiveElementsClass}
-            soul={result.ziwei.soul}
-            body={result.ziwei.body}
-            lunarDate={result.ziwei.lunarDate}
-          />
+          <div id={`panel-${currentTab}`} role="tabpanel" aria-labelledby={`tab-${currentTab}`} className="space-y-4">
+            {/* 總覽：人格總覽＋交叉分析 */}
+            {currentTab === "overview" && (
+              <>
+                {!isBusy ? (
+                  <ProfileOverviewCard
+                    name={userName || undefined}
+                    ziwei={{
+                      soulPalaceMajorStars: result.ziwei.palaces.find((p) => p.isSoulPalace)?.majorStars ?? [],
+                      soul: result.ziwei.soul,
+                      body: result.ziwei.body,
+                    }}
+                    bazi={baziAnalysis ? {
+                      dayMaster: baziAnalysis.dayMaster,
+                      dayMasterStrength: baziAnalysis.dayMasterStrength,
+                      dominantElement: baziAnalysis.dominantElement,
+                    } : undefined}
+                    humanDesign={humanDesign ? {
+                      type: humanDesign.type,
+                      profile: humanDesign.profile,
+                    } : undefined}
+                    zodiac={{
+                      sun: result.zodiac.sign,
+                      moon: result.zodiac.moonSign,
+                      rising: result.zodiac.risingSign,
+                    }}
+                    mbti={userMbti}
+                    enneagram={userEnneagram}
+                    tagline={crossAnalysis?.tagline}
+                  />
+                ) : (
+                  <p className="text-muted text-sm text-center py-8">
+                    分析完成後，這裡會出現總覽；紫微、星座、流年已經可以先看。
+                  </p>
+                )}
+                {crossAnalysis && <CrossAnalysisCard analysis={crossAnalysis} name={userName || undefined} />}
+              </>
+            )}
 
-          {/* 流年運勢 */}
-          <YearlyFortuneCard fortune={result.yearlyFortune} />
+            {/* 八字 AI 分析 */}
+            {currentTab === "bazi" && baziAnalysis && (
+              <BaziCard
+                analysis={baziAnalysis}
+                chineseDate={result.ziwei.chineseDate}
+                fiveElementsClass={result.ziwei.fiveElementsClass}
+              />
+            )}
 
-          </div>{/* end #fate-result */}
+            {/* 紫微：基本資料＋命盤 */}
+            {currentTab === "ziwei" && (
+              <>
+                <section className="bg-card border border-line rounded-2xl p-6">
+                  <h2 className="text-base font-semibold text-accent mb-4">紫微斗數基本資料</h2>
+                  <dl className="grid grid-cols-2 gap-3 text-sm">
+                    <Fact label="陽曆" tip={getTooltipProps("ziwei.field.solarDate")} value={result.ziwei.solarDate} />
+                    <Fact label="農曆" tip={getTooltipProps("ziwei.field.lunarDate")} value={result.ziwei.lunarDate} />
+                    <Fact label="四柱（干支）" tip={getTooltipProps("ziwei.field.chineseDate")} value={result.ziwei.chineseDate} />
+                    <Fact label="五行局" tip={getTooltipProps("ziwei.field.fiveElementsClass")} value={result.ziwei.fiveElementsClass} />
+                    <Fact label="命主星" tip={getTooltipProps("ziwei.field.soul", `ziwei.value.${result.ziwei.soul}`)} value={result.ziwei.soul} />
+                    <Fact label="身主星" tip={getTooltipProps("ziwei.field.body", `ziwei.value.${result.ziwei.body}`)} value={result.ziwei.body} />
+                  </dl>
+                </section>
+                <ZiweiChart
+                  palaces={result.ziwei.palaces}
+                  fiveElementsClass={result.ziwei.fiveElementsClass}
+                  soul={result.ziwei.soul}
+                  body={result.ziwei.body}
+                  lunarDate={result.ziwei.lunarDate}
+                />
+              </>
+            )}
+
+            {/* 星座 */}
+            {currentTab === "zodiac" && (
+              <section className="bg-card border border-line rounded-2xl p-6">
+                <h2 className="text-base font-semibold text-accent mb-4">星座</h2>
+                <dl className="grid grid-cols-2 gap-3 text-sm">
+                  <Fact
+                    label="☀️ 太陽星座"
+                    tip={getTooltipProps("ziwei.field.zodiacSign", `zodiac.value.${result.zodiac.element}`)}
+                    value={`${result.zodiac.sign}（${result.zodiac.element}象）`}
+                  />
+                  <Fact label="🌙 月亮星座" tip={getTooltipProps("zodiac.field.moonSign")} value={result.zodiac.moonSign} />
+                  <Fact label="⬆️ 上升星座" tip={getTooltipProps("zodiac.field.risingSign")} value={result.zodiac.risingSign} />
+                  <Fact label="太陽星座特質" tip={getTooltipProps("ziwei.field.zodiacTraits")} value={result.zodiac.traits.join("、")} />
+                </dl>
+              </section>
+            )}
+
+            {/* 人類圖分析 */}
+            {currentTab === "hd" && humanDesign && <HumanDesignCard result={humanDesign} />}
+
+            {/* 流年運勢 */}
+            {currentTab === "yearly" && <YearlyFortuneCard fortune={result.yearlyFortune} />}
+          </div>
 
           {/* Footer credit */}
-          <div className="text-center text-xs text-slate-600 pt-4">
+          <div className="text-center text-xs text-muted/70 pt-8">
             <p>命運手記 Fate Notes — Powered by iztro · humandesignhub · Gemini</p>
           </div>
         </div>
       )}
     </main>
+  );
+}
+
+function Fact({
+  label,
+  value,
+  tip,
+}: {
+  label: string;
+  value?: string;
+  tip: ReturnType<typeof getTooltipProps>;
+}) {
+  return (
+    <div className="bg-paper border border-line rounded-lg p-3">
+      <dt className="text-muted text-xs mb-1">
+        <Tooltip {...tip}><span>{label}</span></Tooltip>
+      </dt>
+      {/* keep-all：「辛酉 丁酉 己亥 丙寅」只在空格換行，不會把「丙寅」拆成兩行 */}
+      <dd className={`font-medium [word-break:keep-all] ${value ? "text-ink" : "text-muted italic"}`}>{value ?? "計算中…"}</dd>
+    </div>
   );
 }

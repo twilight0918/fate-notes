@@ -34,15 +34,15 @@ export default function DownloadReportButton({ getData, label = "下載完整報
 
   return (
     <div className="flex items-center gap-2">
-      {state === "error" && <span className="text-xs text-red-400">產生失敗，請再試一次</span>}
+      {state === "error" && <span className="text-xs text-fire">產生失敗，請再試一次</span>}
       <button
         onClick={handleDownload}
         disabled={state === "working"}
-        className="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs rounded-lg px-3 py-1.5 transition-colors disabled:opacity-50"
+        className="inline-flex items-center gap-1.5 border border-line text-ink/80 hover:bg-paper text-xs rounded-lg px-3 py-1.5 transition-colors disabled:opacity-50"
       >
         {state === "working" ? (
           <>
-            <span className="w-3 h-3 border-2 border-slate-500 border-t-slate-300 rounded-full animate-spin" />
+            <span className="w-3 h-3 border-2 border-line border-t-accent rounded-full animate-spin" />
             產生中…
           </>
         ) : (
