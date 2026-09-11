@@ -39,21 +39,6 @@ const SIGN_CN: Record<string, string> = {
   pisces:      "雙魚座",
 };
 
-// ─── iztro timeIndex → clock hour conversion ─────────────────────────────────
-
-/**
- * Convert iztro timeIndex (0-11, each = 2 hours) to clock hour.
- * Takes the midpoint of each 時辰:
- *   0 (子時 23:00-01:00) → 0   (midnight)
- *   1 (丑時 01:00-03:00) → 2
- *   6 (午時 11:00-13:00) → 12
- *  12 (未知/unknown)     → 12  (noon default)
- */
-export function timeIndexToClockHour(timeIndex: number): number {
-  if (timeIndex >= 12 || timeIndex < 0) return 12; // Unknown → noon
-  return (timeIndex * 2 + 1) % 24;
-}
-
 // ─── Main calculation ────────────────────────────────────────────────────────
 
 export function calculateAstro(input: AstroInput): AstroResult {

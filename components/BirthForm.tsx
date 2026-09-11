@@ -1,13 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { clockToTimeIndex, shichenName, UNKNOWN_TIME } from "@/utils/birth-time";
 
 export interface BirthFormData {
   name: string;
   year: number;
   month: number;
   day: number;
-  hour: number;
+  hour: number;          // iztro timeIndex 0–12（由出生時間換算，紫微／八字用）
+  clockHour?: number;    // 0–23；2026-09 以前的舊紀錄沒有這欄
+  minute?: number;       // 0–59
+  timeUnknown?: boolean;
   gender: "male" | "female";
   city: string;
   // 進階選填（optional）
@@ -19,23 +23,6 @@ interface Props {
   onSubmit: (data: BirthFormData) => void;
   isLoading?: boolean;
 }
-
-// iztro timeIndex: 0-11 對應十二時辰，12 = 不知道
-const HOUR_OPTIONS = [
-  { value: 12, label: "不知道出生時辰" },
-  { value: 0,  label: "子時（23:00–01:00）" },
-  { value: 1,  label: "丑時（01:00–03:00）" },
-  { value: 2,  label: "寅時（03:00–05:00）" },
-  { value: 3,  label: "卯時（05:00–07:00）" },
-  { value: 4,  label: "辰時（07:00–09:00）" },
-  { value: 5,  label: "巳時（09:00–11:00）" },
-  { value: 6,  label: "午時（11:00–13:00）" },
-  { value: 7,  label: "未時（13:00–15:00）" },
-  { value: 8,  label: "申時（15:00–17:00）" },
-  { value: 9,  label: "酉時（17:00–19:00）" },
-  { value: 10, label: "戌時（19:00–21:00）" },
-  { value: 11, label: "亥時（21:00–23:00）" },
-];
 
 const MBTI_OPTIONS = [
   "", "INTJ", "INTP", "ENTJ", "ENTP",
@@ -65,7 +52,7 @@ export default function BirthForm({ onSubmit, isLoading = false }: Props) {
     year: 1990,
     month: 1,
     day: 1,
-    hour: 6,  // 午時（timeIndex 6）作為預設
+    hour: UNKNOWN_TIME.timeIndex,  // 送出時由出生時間換算
     gender: "male",
     city: "Taipei",
   });
@@ -73,6 +60,9 @@ export default function BirthForm({ onSubmit, isLoading = false }: Props) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [mbti, setMbti] = useState("");
   const [enneagram, setEnneagram] = useState(0);
+  const [clockHour, setClockHour] = useState(12);
+  const [minute, setMinute] = useState(0);
+  const [timeUnknown, setTimeUnknown] = useState(false);
 
   function validate(): boolean {
     const errs: typeof errors = {};
@@ -81,6 +71,10 @@ export default function BirthForm({ onSubmit, isLoading = false }: Props) {
     if (form.month < 1 || form.month > 12) errs.month = "月份 1–12";
     if (form.day < 1 || form.day > 31) errs.day = "日期 1–31";
     if (!form.city.trim()) errs.city = "請輸入出生城市";
+    if (!timeUnknown) {
+      if (!Number.isInteger(clockHour) || clockHour < 0 || clockHour > 23) errs.clockHour = "時 0–23";
+      if (!Number.isInteger(minute) || minute < 0 || minute > 59) errs.minute = "分 0–59";
+    }
     setErrors(errs);
     return Object.keys(errs).length === 0;
   }
@@ -88,8 +82,15 @@ export default function BirthForm({ onSubmit, isLoading = false }: Props) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (validate()) {
+      const time = timeUnknown
+        ? UNKNOWN_TIME
+        : { hour: clockHour, minute, timeIndex: clockToTimeIndex(clockHour) };
       const data: BirthFormData = {
         ...form,
+        hour: time.timeIndex,
+        clockHour: time.hour,
+        minute: time.minute,
+        ...(timeUnknown && { timeUnknown: true }),
         ...(mbti && { mbti }),
         ...(enneagram > 0 && { enneagram }),
       };
@@ -164,22 +165,52 @@ export default function BirthForm({ onSubmit, isLoading = false }: Props) {
         </p>
       </div>
 
-      {/* 出生時辰 */}
+      {/* 出生時間（時＋分） */}
       <div>
-        <label className="block text-sm text-slate-400 mb-1">出生時辰</label>
-        <select
-          value={form.hour}
-          onChange={(e) => setForm({ ...form, hour: Number(e.target.value) })}
-          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500"
-        >
-          {HOUR_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+        <label className="block text-sm text-slate-400 mb-1">出生時間（24 小時制）</label>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min={0} max={23}
+                value={clockHour}
+                disabled={timeUnknown}
+                onChange={(e) => setClockHour(Number(e.target.value))}
+                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500 disabled:opacity-40"
+              />
+              <span className="text-sm text-slate-500 flex-shrink-0">時</span>
+            </div>
+            {errors.clockHour && <p className="text-red-400 text-xs mt-1">{errors.clockHour}</p>}
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min={0} max={59}
+                value={minute}
+                disabled={timeUnknown}
+                onChange={(e) => setMinute(Number(e.target.value))}
+                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500 disabled:opacity-40"
+              />
+              <span className="text-sm text-slate-500 flex-shrink-0">分</span>
+            </div>
+            {errors.minute && <p className="text-red-400 text-xs mt-1">{errors.minute}</p>}
+          </div>
+        </div>
+        <label className="flex items-center gap-2 mt-2 text-xs text-slate-400 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={timeUnknown}
+            onChange={(e) => setTimeUnknown(e.target.checked)}
+            className="accent-indigo-500"
+          />
+          不知道出生時間
+        </label>
         <p className="text-xs text-slate-500 mt-1">
-          不確定時辰可選「午時」，命盤仍可參考
+          {timeUnknown
+            ? "紫微、八字以午時排盤，上升星座與人類圖以中午 12:00 計算，準確度會降低"
+            : `對應時辰：${shichenName(clockToTimeIndex(clockHour))}。上升星座與人類圖會用到分鐘，越精確越好`}
         </p>
       </div>
 

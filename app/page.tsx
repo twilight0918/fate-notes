@@ -14,7 +14,8 @@ import { getZiweiChart, getYearlyFortune, type ZiweiResult, type YearlyFortune }
 import { getZodiacSign, type ZodiacInfo } from "@/utils/zodiac";
 import { buildISODatetime } from "@/utils/timezone";
 import { geocodeCity } from "@/utils/geocode";
-import { calculateAstro, timeIndexToClockHour } from "@/utils/astro-calc";
+import { calculateAstro } from "@/utils/astro-calc";
+import { UNKNOWN_TIME } from "@/utils/birth-time";
 import { getHistory, saveRecord, deleteRecord, clearHistory, type HistoryRecord } from "@/utils/history";
 import type { AnalyzeRequest, BaziAnalysis } from "@/app/api/analyze/route";
 import type { HumanDesignResult } from "@/app/api/human-design/route";
@@ -130,6 +131,8 @@ export default function HomePage() {
     let ziwei: ZiweiResult;
     let zodiac: ZodiacInfo;
     let yearlyFortune: YearlyFortune;
+    const clockHour = data.clockHour ?? UNKNOWN_TIME.hour;
+    const minute = data.minute ?? UNKNOWN_TIME.minute;
 
     try {
       ziwei = getZiweiChart(data);
@@ -139,13 +142,12 @@ export default function HomePage() {
       // Calculate Moon sign + Rising sign (async: needs geocoding)
       try {
         const coords = await geocodeCity(data.city);
-        const clockHour = timeIndexToClockHour(data.hour);
         const astro = calculateAstro({
           year: data.year,
           month: data.month,
           day: data.day,
           hour: clockHour,
-          minute: 0,
+          minute,
           latitude: coords.lat,
           longitude: coords.lon,
         });
@@ -177,7 +179,7 @@ export default function HomePage() {
       body: ziwei.body,
       gender: data.gender,
       year: data.year,
-      isTimeUnknown: data.hour === 12,
+      isTimeUnknown: data.timeUnknown === true,
       zodiacSign: zodiac.sign,
       zodiacElement: zodiac.element,
       provider,
@@ -185,7 +187,7 @@ export default function HomePage() {
       modelTier,
     };
 
-    const isoDatetime = buildISODatetime(data.year, data.month, data.day, data.hour, data.city);
+    const isoDatetime = buildISODatetime(data.year, data.month, data.day, clockHour, minute, data.city);
 
     // Run both API calls in parallel — partial failure handled independently
     const [baziSettled, hdSettled] = await Promise.allSettled([

@@ -135,28 +135,23 @@ export function getCityTimezoneOffset(city: string): string {
 }
 
 /**
- * Converts iztro timeIndex + date + city into an ISO 8601 datetime string.
- *
- * iztro timeIndex mapping to clock hours (middle of each 2-hour 時辰 block):
- *   0 (子) → 00:00  1 (丑) → 02:00  2 (寅) → 04:00  3 (卯) → 06:00
- *   4 (辰) → 08:00  5 (巳) → 10:00  6 (午) → 12:00  7 (未) → 14:00
- *   8 (申) → 16:00  9 (酉) → 18:00  10 (戌) → 20:00  11 (亥) → 22:00
- *   12 (unknown) → 12:00 (noon default)
+ * Converts a local birth date + clock time + city into an ISO 8601 datetime string.
  *
  * @example
- * buildISODatetime(1990, 1, 1, 6, "Taipei") → "1990-01-01T12:00:00+08:00"
+ * buildISODatetime(1990, 1, 1, 3, 40, "Taipei") → "1990-01-01T03:40:00+08:00"
  */
 export function buildISODatetime(
   year: number,
   month: number,
   day: number,
-  timeIndex: number,
+  hour: number,
+  minute: number,
   city: string
 ): string {
-  const hour = timeIndex === 12 ? 12 : timeIndex * 2;
   const mm = String(month).padStart(2, "0");
   const dd = String(day).padStart(2, "0");
   const hh = String(hour).padStart(2, "0");
+  const mi = String(minute).padStart(2, "0");
   const tzOffset = getCityTimezoneOffset(city);
-  return `${year}-${mm}-${dd}T${hh}:00:00${tzOffset}`;
+  return `${year}-${mm}-${dd}T${hh}:${mi}:00${tzOffset}`;
 }
