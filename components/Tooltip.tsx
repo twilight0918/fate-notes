@@ -37,8 +37,8 @@ export default function Tooltip({ fieldDesc, valueDesc, children }: TooltipProps
   // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     if (show) {
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
+      document.addEventListener("pointerdown", handleClickOutside);
+      return () => document.removeEventListener("pointerdown", handleClickOutside);
     }
   }, [show, handleClickOutside]);
 
@@ -46,37 +46,43 @@ export default function Tooltip({ fieldDesc, valueDesc, children }: TooltipProps
     <span ref={wrapperRef} className="inline-flex items-center gap-1">
       {children}
       <span className="relative inline-block">
+        {/* 滑鼠：移入就開、移出就關。觸控：只認點擊——手機的一次點擊也會送出「移入」，
+            若兩個都處理，會一開一關互相抵銷（舊版手機上點不開的原因）。 */}
         <button
           type="button"
           onClick={() => setShow((s) => !s)}
-          onMouseEnter={() => setShow(true)}
-          onMouseLeave={() => setShow(false)}
-          className="text-slate-400 hover:text-indigo-400 transition-colors text-sm leading-none cursor-help flex-shrink-0"
+          onPointerEnter={(e) => { if (e.pointerType === "mouse") setShow(true); }}
+          onPointerLeave={(e) => { if (e.pointerType === "mouse") setShow(false); }}
+          className="-m-2 p-2 text-muted hover:text-accent transition-colors text-sm leading-none cursor-help flex-shrink-0"
           aria-label="說明"
+          aria-expanded={show}
         >
           ⓘ
         </button>
 
+        {/* 手機：從畫面底部浮出、左右留邊，不會被螢幕邊緣切掉；桌機：圖示上方的小浮層 */}
         {show && (
           <span
-            className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50
-                        w-max max-w-sm bg-slate-900 border border-slate-600
+            role="tooltip"
+            className="fixed inset-x-4 bottom-4 z-50
+                        sm:absolute sm:inset-x-auto sm:bottom-full sm:left-1/2 sm:-translate-x-1/2 sm:mb-2
+                        sm:w-max sm:max-w-sm bg-card border border-line
                         rounded-lg px-4 py-3 shadow-xl
                         animate-in fade-in duration-150"
             style={{ display: "block" }}
           >
             {fieldDesc && (
-              <span className="block text-xs text-slate-400 leading-snug mb-1.5">
+              <span className="block text-xs text-muted leading-snug mb-1.5">
                 {fieldDesc}
               </span>
             )}
             {valueDesc && (
-              <span className="block text-sm text-slate-200 leading-relaxed">
+              <span className="block text-sm text-ink leading-relaxed">
                 {valueDesc}
               </span>
             )}
             {/* Arrow */}
-            <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900" />
+            <span className="hidden sm:block absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-card" />
           </span>
         )}
       </span>

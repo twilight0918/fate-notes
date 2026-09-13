@@ -1,13 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { clockToTimeIndex, shichenName, UNKNOWN_TIME } from "@/utils/birth-time";
 
 export interface BirthFormData {
   name: string;
   year: number;
   month: number;
   day: number;
-  hour: number;
+  hour: number;          // iztro timeIndex 0–12（由出生時間換算，紫微／八字用）
+  clockHour?: number;    // 0–23；2026-09 以前的舊紀錄沒有這欄
+  minute?: number;       // 0–59
+  timeUnknown?: boolean;
   gender: "male" | "female";
   city: string;
   // 進階選填（optional）
@@ -18,24 +22,9 @@ export interface BirthFormData {
 interface Props {
   onSubmit: (data: BirthFormData) => void;
   isLoading?: boolean;
+  /** 還不能送出（例如沒填 API Key）：按鈕停用，但文字不顯示「分析中」 */
+  disabled?: boolean;
 }
-
-// iztro timeIndex: 0-11 對應十二時辰，12 = 不知道
-const HOUR_OPTIONS = [
-  { value: 12, label: "不知道出生時辰" },
-  { value: 0,  label: "子時（23:00–01:00）" },
-  { value: 1,  label: "丑時（01:00–03:00）" },
-  { value: 2,  label: "寅時（03:00–05:00）" },
-  { value: 3,  label: "卯時（05:00–07:00）" },
-  { value: 4,  label: "辰時（07:00–09:00）" },
-  { value: 5,  label: "巳時（09:00–11:00）" },
-  { value: 6,  label: "午時（11:00–13:00）" },
-  { value: 7,  label: "未時（13:00–15:00）" },
-  { value: 8,  label: "申時（15:00–17:00）" },
-  { value: 9,  label: "酉時（17:00–19:00）" },
-  { value: 10, label: "戌時（19:00–21:00）" },
-  { value: 11, label: "亥時（21:00–23:00）" },
-];
 
 const MBTI_OPTIONS = [
   "", "INTJ", "INTP", "ENTJ", "ENTP",
@@ -59,13 +48,13 @@ const ENNEAGRAM_OPTIONS = [
 
 const currentYear = new Date().getFullYear();
 
-export default function BirthForm({ onSubmit, isLoading = false }: Props) {
+export default function BirthForm({ onSubmit, isLoading = false, disabled = false }: Props) {
   const [form, setForm] = useState<BirthFormData>({
     name: "",
     year: 1990,
     month: 1,
     day: 1,
-    hour: 6,  // 午時（timeIndex 6）作為預設
+    hour: UNKNOWN_TIME.timeIndex,  // 送出時由出生時間換算
     gender: "male",
     city: "Taipei",
   });
@@ -73,6 +62,9 @@ export default function BirthForm({ onSubmit, isLoading = false }: Props) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [mbti, setMbti] = useState("");
   const [enneagram, setEnneagram] = useState(0);
+  const [clockHour, setClockHour] = useState(12);
+  const [minute, setMinute] = useState(0);
+  const [timeUnknown, setTimeUnknown] = useState(false);
 
   function validate(): boolean {
     const errs: typeof errors = {};
@@ -81,6 +73,10 @@ export default function BirthForm({ onSubmit, isLoading = false }: Props) {
     if (form.month < 1 || form.month > 12) errs.month = "月份 1–12";
     if (form.day < 1 || form.day > 31) errs.day = "日期 1–31";
     if (!form.city.trim()) errs.city = "請輸入出生城市";
+    if (!timeUnknown) {
+      if (!Number.isInteger(clockHour) || clockHour < 0 || clockHour > 23) errs.clockHour = "時 0–23";
+      if (!Number.isInteger(minute) || minute < 0 || minute > 59) errs.minute = "分 0–59";
+    }
     setErrors(errs);
     return Object.keys(errs).length === 0;
   }
@@ -88,8 +84,15 @@ export default function BirthForm({ onSubmit, isLoading = false }: Props) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (validate()) {
+      const time = timeUnknown
+        ? UNKNOWN_TIME
+        : { hour: clockHour, minute, timeIndex: clockToTimeIndex(clockHour) };
       const data: BirthFormData = {
         ...form,
+        hour: time.timeIndex,
+        clockHour: time.hour,
+        minute: time.minute,
+        ...(timeUnknown && { timeUnknown: true }),
         ...(mbti && { mbti }),
         ...(enneagram > 0 && { enneagram }),
       };
@@ -101,91 +104,121 @@ export default function BirthForm({ onSubmit, isLoading = false }: Props) {
     <form onSubmit={handleSubmit} className="space-y-5">
       {/* 名字（選填） */}
       <div>
-        <label className="block text-sm text-slate-400 mb-1">名字</label>
+        <label className="block text-sm text-muted mb-1">名字</label>
         <input
           type="text"
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
           placeholder="選填，會顯示在報告上"
-          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500 placeholder-slate-600"
+          className="w-full bg-paper border border-line rounded-lg px-3 py-2 text-ink focus:outline-none focus:border-accent placeholder:text-muted/60"
         />
       </div>
 
       {/* 出生年月日 */}
       <div className="grid grid-cols-3 gap-3">
         <div>
-          <label className="block text-sm text-slate-400 mb-1">年</label>
+          <label className="block text-sm text-muted mb-1">年</label>
           <input
             type="number"
             value={form.year}
             onChange={(e) => setForm({ ...form, year: Number(e.target.value) })}
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500"
+            className="w-full bg-paper border border-line rounded-lg px-3 py-2 text-ink focus:outline-none focus:border-accent"
             placeholder="1990"
           />
-          {errors.year && <p className="text-red-400 text-xs mt-1">{errors.year}</p>}
+          {errors.year && <p className="text-fire text-xs mt-1">{errors.year}</p>}
         </div>
         <div>
-          <label className="block text-sm text-slate-400 mb-1">月</label>
+          <label className="block text-sm text-muted mb-1">月</label>
           <input
             type="number"
             min={1} max={12}
             value={form.month}
             onChange={(e) => setForm({ ...form, month: Number(e.target.value) })}
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500"
+            className="w-full bg-paper border border-line rounded-lg px-3 py-2 text-ink focus:outline-none focus:border-accent"
           />
-          {errors.month && <p className="text-red-400 text-xs mt-1">{errors.month}</p>}
+          {errors.month && <p className="text-fire text-xs mt-1">{errors.month}</p>}
         </div>
         <div>
-          <label className="block text-sm text-slate-400 mb-1">日</label>
+          <label className="block text-sm text-muted mb-1">日</label>
           <input
             type="number"
             min={1} max={31}
             value={form.day}
             onChange={(e) => setForm({ ...form, day: Number(e.target.value) })}
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500"
+            className="w-full bg-paper border border-line rounded-lg px-3 py-2 text-ink focus:outline-none focus:border-accent"
           />
-          {errors.day && <p className="text-red-400 text-xs mt-1">{errors.day}</p>}
+          {errors.day && <p className="text-fire text-xs mt-1">{errors.day}</p>}
         </div>
       </div>
 
       {/* 出生城市（用於人類圖時區計算） */}
       <div>
-        <label className="block text-sm text-slate-400 mb-1">出生城市</label>
+        <label className="block text-sm text-muted mb-1">出生城市</label>
         <input
           type="text"
           value={form.city}
           onChange={(e) => setForm({ ...form, city: e.target.value })}
           placeholder="例：Taipei、Tokyo、Hong Kong"
-          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500 placeholder-slate-600"
+          className="w-full bg-paper border border-line rounded-lg px-3 py-2 text-ink focus:outline-none focus:border-accent placeholder:text-muted/60"
         />
-        {errors.city && <p className="text-red-400 text-xs mt-1">{errors.city}</p>}
-        <p className="text-xs text-slate-500 mt-1">
+        {errors.city && <p className="text-fire text-xs mt-1">{errors.city}</p>}
+        <p className="text-xs text-muted mt-1">
           用於人類圖計算時區（不確定可填 Taipei）
         </p>
       </div>
 
-      {/* 出生時辰 */}
+      {/* 出生時間（時＋分） */}
       <div>
-        <label className="block text-sm text-slate-400 mb-1">出生時辰</label>
-        <select
-          value={form.hour}
-          onChange={(e) => setForm({ ...form, hour: Number(e.target.value) })}
-          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500"
-        >
-          {HOUR_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-        <p className="text-xs text-slate-500 mt-1">
-          不確定時辰可選「午時」，命盤仍可參考
+        <label className="block text-sm text-muted mb-1">出生時間（24 小時制）</label>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min={0} max={23}
+                value={clockHour}
+                disabled={timeUnknown}
+                onChange={(e) => setClockHour(Number(e.target.value))}
+                className="w-full bg-paper border border-line rounded-lg px-3 py-2 text-ink focus:outline-none focus:border-accent disabled:opacity-40"
+              />
+              <span className="text-sm text-muted flex-shrink-0">時</span>
+            </div>
+            {errors.clockHour && <p className="text-fire text-xs mt-1">{errors.clockHour}</p>}
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min={0} max={59}
+                value={minute}
+                disabled={timeUnknown}
+                onChange={(e) => setMinute(Number(e.target.value))}
+                className="w-full bg-paper border border-line rounded-lg px-3 py-2 text-ink focus:outline-none focus:border-accent disabled:opacity-40"
+              />
+              <span className="text-sm text-muted flex-shrink-0">分</span>
+            </div>
+            {errors.minute && <p className="text-fire text-xs mt-1">{errors.minute}</p>}
+          </div>
+        </div>
+        <label className="flex items-center gap-2 mt-2 text-xs text-muted cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={timeUnknown}
+            onChange={(e) => setTimeUnknown(e.target.checked)}
+            className="accent-accent"
+          />
+          不知道出生時間
+        </label>
+        <p className="text-xs text-muted mt-1">
+          {timeUnknown
+            ? "紫微、八字以午時排盤，上升星座與人類圖以中午 12:00 計算，準確度會降低"
+            : `對應時辰：${shichenName(clockToTimeIndex(clockHour))}。上升星座與人類圖會用到分鐘，越精確越好`}
         </p>
       </div>
 
       {/* 性別 */}
       <div>
-        <label className="block text-sm text-slate-400 mb-1">性別</label>
+        <label className="block text-sm text-muted mb-1">性別</label>
         <div className="flex gap-3">
           {(["male", "female"] as const).map((g) => (
             <button
@@ -194,8 +227,8 @@ export default function BirthForm({ onSubmit, isLoading = false }: Props) {
               onClick={() => setForm({ ...form, gender: g })}
               className={`flex-1 py-2 rounded-lg border transition-colors ${
                 form.gender === g
-                  ? "bg-indigo-600 border-indigo-500 text-white"
-                  : "bg-slate-800 border-slate-700 text-slate-300 hover:border-slate-500"
+                  ? "bg-accent border-accent text-paper"
+                  : "bg-paper border-line text-ink/80 hover:border-accent/40"
               }`}
             >
               {g === "male" ? "男" : "女"}
@@ -205,11 +238,11 @@ export default function BirthForm({ onSubmit, isLoading = false }: Props) {
       </div>
 
       {/* 進階選填（摺疊） */}
-      <div className="border-t border-slate-800 pt-3">
+      <div className="border-t border-line pt-3">
         <button
           type="button"
           onClick={() => setShowAdvanced(!showAdvanced)}
-          className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-300 transition-colors"
+          className="flex items-center gap-2 text-sm text-muted hover:text-ink transition-colors"
         >
           <span className={`transition-transform ${showAdvanced ? "rotate-90" : ""}`}>▶</span>
           進階選填（可增加分析深度）
@@ -219,20 +252,20 @@ export default function BirthForm({ onSubmit, isLoading = false }: Props) {
           <div className="mt-3 space-y-3">
             {/* MBTI */}
             <div>
-              <label className="block text-sm text-slate-400 mb-1">MBTI 類型</label>
+              <label className="block text-sm text-muted mb-1">MBTI 類型</label>
               <select
                 value={mbti}
                 onChange={(e) => setMbti(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500"
+                className="w-full bg-paper border border-line rounded-lg px-3 py-2 text-ink focus:outline-none focus:border-accent"
               >
                 <option value="">不確定 / 未填</option>
                 {MBTI_OPTIONS.filter(Boolean).map((type) => (
                   <option key={type} value={type}>{type}</option>
                 ))}
               </select>
-              <p className="text-xs text-slate-600 mt-1">
+              <p className="text-xs text-muted/70 mt-1">
                 不知道可以到{" "}
-                <a href="https://www.16personalities.com/ch" target="_blank" rel="noopener noreferrer" className="text-indigo-400 underline">
+                <a href="https://www.16personalities.com/ch" target="_blank" rel="noopener noreferrer" className="text-accent underline">
                   16personalities.com
                 </a>{" "}
                 免費測驗
@@ -241,11 +274,11 @@ export default function BirthForm({ onSubmit, isLoading = false }: Props) {
 
             {/* 九型人格 */}
             <div>
-              <label className="block text-sm text-slate-400 mb-1">九型人格</label>
+              <label className="block text-sm text-muted mb-1">九型人格</label>
               <select
                 value={enneagram}
                 onChange={(e) => setEnneagram(Number(e.target.value))}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500"
+                className="w-full bg-paper border border-line rounded-lg px-3 py-2 text-ink focus:outline-none focus:border-accent"
               >
                 {ENNEAGRAM_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -259,8 +292,8 @@ export default function BirthForm({ onSubmit, isLoading = false }: Props) {
       {/* 送出 */}
       <button
         type="submit"
-        disabled={isLoading}
-        className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+        disabled={isLoading || disabled}
+        className="w-full py-3 bg-accent hover:bg-accent/90 disabled:bg-line disabled:text-muted disabled:cursor-not-allowed text-paper font-medium rounded-lg transition-colors"
       >
         {isLoading ? "分析中…" : "開始命理分析"}
       </button>

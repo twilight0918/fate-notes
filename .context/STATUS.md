@@ -1,5 +1,5 @@
 # 命運手記 Fate Notes — 專案狀態
-最後更新：2026-09-08
+最後更新：2026-09-11
 
 ---
 
@@ -12,9 +12,9 @@
 
 ## 當前 Phase
 
-**Sprint 7**：復工整備（模型更新 + API Key 免重貼）✅ 完成
+**Sprint 8**：出生時間改時分＋紙本手帳改版＋單檔 HTML 報告＋標準人體圖 🟡 分支 `feat/birthtime-redesign` 完成、待 Edward 手機實測後合併
 
-詳見下方「Sprint 7（2026-09-08）」段。
+詳見下方「Sprint 8（2026-09-11）」段。
 
 ---
 
@@ -97,6 +97,19 @@
 - **首頁 JS 460 kB**：主要是 iztro 套件，可觀察但暫不優化
 
 ---
+
+## Sprint 8（2026-09-11）🟡 分支完成、未合併
+
+分支 `feat/birthtime-redesign`。
+
+- [x] 出生時間改填「時＋分」，時辰由時間換算（`utils/birth-time.ts`）；修兩個舊 bug：「不知道時辰」被 iztro 當晚子時、23 點出生被排成早子時（日柱差一天）
+- [x] 星盤／人類圖改用實際時分計算（原本用時辰中點，上升星座會錯）
+- [x] 下載報告改成單一 HTML（`utils/report-html.ts`＋`components/report/ReportDocument.tsx`）：樣式內嵌、離線可開、可列印、原始資料以 JSON 附在檔內；移除截圖版 `ShareButton`（`html-to-image` 依賴尚未從 package.json 移除）
+- [x] 標準人體圖 `BodyGraphStandard`（hdkit／natalengine MIT 幾何），取代舊 `BodyGraph`
+- [x] 紙本手帳配色：語意色 token（`tailwind.config.ts`＋`app/globals.css`），淺深色跟系統；金＝金黃、土＝棕
+- [x] 結果區改分頁籤（總覽／八字／紫微／星座／人類圖／流年），輸入區有結果後收成一行
+- [x] 手機：說明浮層改底部彈出、點擊範圍放大（舊版手機一點會開了又關）；紫微命盤框內橫滑；下載鈕移到摘要列
+- [ ] Edward 手機實測（L2 驗收閘）→ 合併 main → Vercel 部署
 
 ## Sprint 7（2026-09-08）✅ 完成
 

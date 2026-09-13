@@ -19,11 +19,11 @@ export default function ExpandableSection({
   const isOpen = manualOpen || forceOpen;
 
   return (
-    <div className="mt-3 border-t border-slate-700/50 pt-3">
+    <div className="mt-3 border-t border-line/50 pt-3">
       <button
         type="button"
         onClick={() => setManualOpen((prev) => !prev)}
-        className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition-colors"
+        className="flex items-center gap-1.5 text-xs text-muted hover:text-ink transition-colors"
       >
         <svg
           className={`w-3 h-3 transition-transform ${isOpen ? "rotate-90" : ""}`}

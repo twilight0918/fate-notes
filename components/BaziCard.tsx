@@ -11,33 +11,33 @@ interface Props {
 }
 
 const ELEMENT_COLORS: Record<string, string> = {
-  木: "text-green-400",
-  火: "text-red-400",
-  土: "text-yellow-400",
-  金: "text-slate-300",
-  水: "text-blue-400",
+  木: "text-wood",
+  火: "text-fire",
+  土: "text-earth",
+  金: "text-metal",
+  水: "text-water",
 };
 
 const STRENGTH_BADGE: Record<string, string> = {
-  身強: "bg-amber-500/20 text-amber-300 border-amber-500/40",
-  身弱: "bg-blue-500/20 text-blue-300 border-blue-500/40",
-  中和: "bg-purple-500/20 text-purple-300 border-purple-500/40",
+  身強: "bg-gold/20 text-gold border-gold/40",
+  身弱: "bg-water/20 text-water border-water/40",
+  中和: "bg-accent-soft text-accent border-accent/30",
 };
 
 export default function BaziCard({ analysis, chineseDate, fiveElementsClass }: Props) {
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-5">
-      <h2 className="text-lg font-semibold text-amber-400">八字分析</h2>
+    <div className="bg-card border border-line rounded-2xl p-6 space-y-5">
+      <h2 className="text-lg font-semibold text-accent">八字分析</h2>
 
       {/* 四柱 */}
-      <div className="bg-slate-800 rounded-lg p-3">
-        <span className="block text-xs text-slate-500 mb-1">
+      <div className="bg-paper border border-line rounded-lg p-3">
+        <span className="block text-xs text-muted mb-1">
           <Tooltip {...getTooltipProps("bazi.field.chineseDate")}>
             <span>四柱干支（iztro 計算）</span>
           </Tooltip>
         </span>
-        <p className="text-white font-mono">{chineseDate}</p>
-        <span className="block text-xs text-slate-500 mt-2">
+        <p className="text-ink font-mono">{chineseDate}</p>
+        <span className="block text-xs text-muted mt-2">
           <Tooltip {...getTooltipProps("bazi.field.fiveElementsClass")}>
             <span>五行局：{fiveElementsClass}</span>
           </Tooltip>
@@ -46,19 +46,19 @@ export default function BaziCard({ analysis, chineseDate, fiveElementsClass }: P
 
       {/* 日主 + 身強弱 */}
       <div className="flex items-center gap-3">
-        <div className="flex-1 bg-slate-800 rounded-lg p-3">
-          <span className="block text-xs text-slate-500 mb-1">
+        <div className="flex-1 bg-paper border border-line rounded-lg p-3">
+          <span className="block text-xs text-muted mb-1">
             <Tooltip {...getTooltipProps("bazi.field.dayMaster")}>
               <span>日主</span>
             </Tooltip>
           </span>
-          <p className="text-white font-semibold">{analysis.dayMaster}</p>
+          <p className="text-ink font-semibold">{analysis.dayMaster}</p>
         </div>
         <Tooltip {...getTooltipProps("bazi.field.dayMasterStrength", `bazi.value.${analysis.dayMasterStrength}`)}>
           <div
             className={`px-3 py-1 rounded-full border text-sm font-medium ${
               STRENGTH_BADGE[analysis.dayMasterStrength] ??
-              "bg-slate-700 text-slate-300 border-slate-600"
+              "bg-line/20 text-ink/70 border-line"
             }`}
           >
             {analysis.dayMasterStrength}
@@ -68,23 +68,23 @@ export default function BaziCard({ analysis, chineseDate, fiveElementsClass }: P
 
       {/* 五行強弱 */}
       <div className="grid grid-cols-2 gap-2">
-        <div className="bg-slate-800 rounded-lg p-3">
-          <span className="block text-xs text-slate-500 mb-1">
+        <div className="bg-paper border border-line rounded-lg p-3">
+          <span className="block text-xs text-muted mb-1">
             <Tooltip {...getTooltipProps("bazi.field.dominantElement", `bazi.value.${analysis.dominantElement}`)}>
               <span>最旺五行</span>
             </Tooltip>
           </span>
-          <p className={`font-semibold ${ELEMENT_COLORS[analysis.dominantElement] ?? "text-white"}`}>
+          <p className={`font-semibold ${ELEMENT_COLORS[analysis.dominantElement] ?? "text-ink"}`}>
             {analysis.dominantElement}
           </p>
         </div>
-        <div className="bg-slate-800 rounded-lg p-3">
-          <span className="block text-xs text-slate-500 mb-1">
+        <div className="bg-paper border border-line rounded-lg p-3">
+          <span className="block text-xs text-muted mb-1">
             <Tooltip {...getTooltipProps("bazi.field.lackingElement", `bazi.value.${analysis.lackingElement}`)}>
               <span>最弱五行</span>
             </Tooltip>
           </span>
-          <p className={`font-semibold ${ELEMENT_COLORS[analysis.lackingElement] ?? "text-slate-400"}`}>
+          <p className={`font-semibold ${ELEMENT_COLORS[analysis.lackingElement] ?? "text-muted"}`}>
             {analysis.lackingElement}
           </p>
         </div>
@@ -92,7 +92,7 @@ export default function BaziCard({ analysis, chineseDate, fiveElementsClass }: P
 
       {/* 性格特質 */}
       <div>
-        <span className="block text-xs text-slate-500 mb-2">
+        <span className="block text-xs text-muted mb-2">
           <Tooltip {...getTooltipProps("bazi.field.personalityTraits")}>
             <span>核心特質</span>
           </Tooltip>
@@ -101,7 +101,7 @@ export default function BaziCard({ analysis, chineseDate, fiveElementsClass }: P
           {analysis.personalityTraits.map((trait) => (
             <span
               key={trait}
-              className="px-2 py-1 bg-slate-800 rounded-full text-xs text-slate-300 border border-slate-700 whitespace-nowrap"
+              className="px-2 py-1 bg-paper rounded-full text-xs text-ink/80 border border-line whitespace-nowrap"
             >
               {trait}
             </span>
@@ -110,23 +110,23 @@ export default function BaziCard({ analysis, chineseDate, fiveElementsClass }: P
       </div>
 
       {/* 命局摘要 */}
-      <div className="bg-slate-800/60 rounded-lg p-4">
-        <span className="block text-xs text-slate-500 mb-2">
+      <div className="bg-paper border border-line rounded-lg p-4">
+        <span className="block text-xs text-muted mb-2">
           <Tooltip {...getTooltipProps("bazi.field.summary")}>
             <span>命局解讀</span>
           </Tooltip>
         </span>
-        <p className="text-slate-200 text-sm leading-relaxed">{analysis.summary}</p>
+        <p className="text-ink text-sm leading-relaxed">{analysis.summary}</p>
       </div>
 
       {/* 交叉觀察 */}
-      <div className="border-t border-slate-800 pt-4">
-        <span className="block text-xs text-slate-500 mb-1">
+      <div className="border-t border-line pt-4">
+        <span className="block text-xs text-muted mb-1">
           <Tooltip {...getTooltipProps("bazi.field.crossSystemNote")}>
             <span>跨系統觀察（紫微 × 八字 × 星座）</span>
           </Tooltip>
         </span>
-        <p className="text-indigo-300 text-sm italic">{analysis.crossSystemNote}</p>
+        <p className="text-accent text-sm italic">{analysis.crossSystemNote}</p>
       </div>
     </div>
   );

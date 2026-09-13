@@ -69,21 +69,21 @@ export default function HistoryPanel({ records, onLoad, onDelete, onClearAll }: 
   if (records.length === 0) return null;
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 mb-6">
+    <div className="bg-card border border-line rounded-2xl p-4 mb-6">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-medium text-slate-400">📋 歷史紀錄</h3>
+        <h3 className="text-sm font-medium text-muted">📋 歷史紀錄</h3>
         {confirmClearAll ? (
           <div className="flex items-center gap-2">
-            <span className="text-xs text-red-400">確定清除全部？</span>
+            <span className="text-xs text-fire">確定清除全部？</span>
             <button
               onClick={() => { onClearAll(); setConfirmClearAll(false); }}
-              className="text-xs text-red-400 hover:text-red-300 px-2 py-0.5 border border-red-700 rounded"
+              className="text-xs text-fire hover:text-fire/80 px-2 py-0.5 border border-fire/40 rounded"
             >
               確定
             </button>
             <button
               onClick={() => setConfirmClearAll(false)}
-              className="text-xs text-slate-500 hover:text-slate-400 px-2 py-0.5 border border-slate-700 rounded"
+              className="text-xs text-muted hover:text-ink px-2 py-0.5 border border-line rounded"
             >
               取消
             </button>
@@ -91,7 +91,7 @@ export default function HistoryPanel({ records, onLoad, onDelete, onClearAll }: 
         ) : (
           <button
             onClick={() => setConfirmClearAll(true)}
-            className="text-xs text-slate-600 hover:text-slate-400 transition-colors"
+            className="text-xs text-muted/70 hover:text-ink transition-colors"
           >
             清除全部
           </button>
@@ -102,20 +102,20 @@ export default function HistoryPanel({ records, onLoad, onDelete, onClearAll }: 
         {records.map((record) => (
           <div
             key={record.id}
-            className="flex items-center gap-3 bg-slate-800 hover:bg-slate-750 rounded-lg px-3 py-2.5 cursor-pointer transition-colors group"
+            className="flex items-center gap-3 bg-paper border border-line hover:bg-accent-soft rounded-lg px-3 py-2.5 cursor-pointer transition-colors group"
             onClick={() => onLoad(record)}
           >
             {/* Content */}
             <div className="flex-1 min-w-0">
               <div className="flex items-baseline gap-2">
-                <span className="text-sm text-white font-medium truncate">
+                <span className="text-sm text-ink font-medium truncate">
                   {record.birthData.name?.trim() || "未命名"}
                 </span>
-                <span className="text-[10px] text-slate-600 flex-shrink-0">
+                <span className="text-[10px] text-muted/70 flex-shrink-0">
                   {formatDate(record.createdAt)}
                 </span>
               </div>
-              <p className="text-xs text-slate-500 truncate mt-0.5">
+              <p className="text-xs text-muted truncate mt-0.5">
                 {buildSummary(record)}
               </p>
             </div>
@@ -125,13 +125,13 @@ export default function HistoryPanel({ records, onLoad, onDelete, onClearAll }: 
               <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => { onDelete(record.id); setConfirmDeleteId(null); }}
-                  className="text-[10px] text-red-400 hover:text-red-300 px-1.5 py-0.5 border border-red-700 rounded"
+                  className="text-[10px] text-fire hover:text-fire/80 px-1.5 py-0.5 border border-fire/40 rounded"
                 >
                   刪除
                 </button>
                 <button
                   onClick={() => setConfirmDeleteId(null)}
-                  className="text-[10px] text-slate-500 hover:text-slate-400 px-1.5 py-0.5 border border-slate-700 rounded"
+                  className="text-[10px] text-muted hover:text-ink px-1.5 py-0.5 border border-line rounded"
                 >
                   取消
                 </button>
@@ -139,7 +139,7 @@ export default function HistoryPanel({ records, onLoad, onDelete, onClearAll }: 
             ) : (
               <button
                 onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(record.id); }}
-                className="text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all flex-shrink-0 p-1"
+                className="text-muted hover:text-fire opacity-0 group-hover:opacity-100 transition-all flex-shrink-0 p-1"
                 title="刪除此紀錄"
               >
                 🗑️

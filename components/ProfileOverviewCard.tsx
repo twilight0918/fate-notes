@@ -1,7 +1,7 @@
 "use client";
 
 // ─── MBTI Chinese name mapping ────────────────────────────────────────────────
-const MBTI_CN: Record<string, string> = {
+export const MBTI_CN: Record<string, string> = {
   INTJ: "建築師", INTP: "邏輯學家", ENTJ: "指揮官", ENTP: "辯論家",
   INFJ: "提倡者", INFP: "調停者", ENFJ: "主人公", ENFP: "競選者",
   ISTJ: "物流師", ISFJ: "守衛者", ESTJ: "總經理", ESFJ: "執政官",
@@ -9,7 +9,7 @@ const MBTI_CN: Record<string, string> = {
 };
 
 // ─── Enneagram Chinese name mapping ──────────────────────────────────────────
-const ENNEAGRAM_CN: Record<number, string> = {
+export const ENNEAGRAM_CN: Record<number, string> = {
   1: "完美主義者", 2: "助人者", 3: "成就者",
   4: "個人主義者", 5: "觀察者", 6: "忠誠者",
   7: "享樂主義者", 8: "挑戰者", 9: "和平者",
@@ -56,7 +56,7 @@ function OverviewRow({
   icon,
   label,
   value,
-  color = "text-slate-300",
+  color = "text-ink/80",
 }: {
   icon: string;
   label: string;
@@ -66,7 +66,7 @@ function OverviewRow({
   return (
     <div className="flex items-baseline gap-3 py-1.5">
       <span className="text-sm w-5 text-center flex-shrink-0">{icon}</span>
-      <span className="text-xs text-slate-500 w-16 flex-shrink-0">{label}</span>
+      <span className="text-xs text-muted w-16 flex-shrink-0">{label}</span>
       <span className={`text-sm font-medium ${color}`}>{value}</span>
     </div>
   );
@@ -116,34 +116,34 @@ export default function ProfileOverviewCard({
     : null;
 
   return (
-    <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/50 border border-indigo-500/20 rounded-2xl p-6">
+    <div className="bg-gradient-to-br from-card via-card to-accent-soft border border-accent/20 rounded-2xl p-6">
       {/* Header */}
-      <h2 className="text-base font-semibold text-indigo-400 mb-4">
+      <h2 className="text-base font-semibold text-accent mb-4">
         {name ? `${name} 的人格總覽` : "人格總覽"}
       </h2>
 
       {/* System rows */}
-      <div className="divide-y divide-slate-800/50">
-        <OverviewRow icon="🟣" label="紫微" value={ziweiDisplay} color="text-violet-300" />
+      <div className="divide-y divide-line/50">
+        <OverviewRow icon="🟣" label="紫微" value={ziweiDisplay} color="text-accent" />
         {baziDisplay && (
-          <OverviewRow icon="🔴" label="八字" value={baziDisplay} color="text-amber-300" />
+          <OverviewRow icon="🔴" label="八字" value={baziDisplay} color="text-accent" />
         )}
         {hdDisplay && (
-          <OverviewRow icon="🔵" label="人類圖" value={hdDisplay} color="text-cyan-300" />
+          <OverviewRow icon="🔵" label="人類圖" value={hdDisplay} color="text-accent" />
         )}
-        <OverviewRow icon="⭐" label="星座" value={zodiacDisplay} color="text-yellow-300" />
+        <OverviewRow icon="⭐" label="星座" value={zodiacDisplay} color="text-accent" />
         {mbtiDisplay && (
-          <OverviewRow icon="🟢" label="MBTI" value={mbtiDisplay} color="text-emerald-300" />
+          <OverviewRow icon="🟢" label="MBTI" value={mbtiDisplay} color="text-accent" />
         )}
         {enneagramDisplay && (
-          <OverviewRow icon="🟠" label="九型" value={enneagramDisplay} color="text-orange-300" />
+          <OverviewRow icon="🟠" label="九型" value={enneagramDisplay} color="text-accent" />
         )}
       </div>
 
       {/* Tagline */}
       {tagline && (
-        <div className="mt-4 pt-4 border-t border-slate-800/50">
-          <p className="text-sm text-slate-300 italic text-center leading-relaxed">
+        <div className="mt-4 pt-4 border-t border-line/50">
+          <p className="text-sm text-ink/80 italic text-center leading-relaxed">
             「{tagline}」
           </p>
         </div>

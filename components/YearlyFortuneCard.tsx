@@ -5,16 +5,16 @@ import Tooltip from "@/components/Tooltip";
 import ExpandableSection from "@/components/ExpandableSection";
 import { getTooltipProps, getValueDesc, normalizePalaceName } from "@/utils/glossary";
 
-const MUTAGEN_LABELS = ["化祿", "化權", "化科", "化忌"] as const;
+export const MUTAGEN_LABELS = ["化祿", "化權", "化科", "化忌"] as const;
 const MUTAGEN_COLORS = [
-  "text-green-400",   // 祿
-  "text-amber-400",   // 權
-  "text-cyan-400",    // 科
-  "text-red-400",     // 忌
+  "text-wood",    // 祿
+  "text-gold",    // 權
+  "text-water",   // 科
+  "text-fire",    // 忌
 ];
 
 /** 四化落入宮位的白話影響 — 用於流年解讀面板 */
-const MUTAGEN_YEARLY_EFFECT: Record<string, string> = {
+export const MUTAGEN_YEARLY_EFFECT: Record<string, string> = {
   "化祿": "這個領域今年會比較順利，容易有收穫和好運",
   "化權": "這個領域今年你會更有主導權和決策力",
   "化科": "這個領域今年容易得到貴人相助或獲得認可",
@@ -22,7 +22,7 @@ const MUTAGEN_YEARLY_EFFECT: Record<string, string> = {
 };
 
 /** 四化的白話定位說明 — 用於解釋每個四化「是什麼」 */
-const MUTAGEN_PLAIN_DESC: Record<string, string> = {
+export const MUTAGEN_PLAIN_DESC: Record<string, string> = {
   "化祿": "化祿落在哪顆星所在的宮位，那個領域今年比較順，容易有好事",
   "化權": "化權落在哪顆星所在的宮位，那個領域今年你會更有掌控力和決策權",
   "化科": "化科落在哪顆星所在的宮位，那個領域今年容易得貴人、被看見",
@@ -31,12 +31,12 @@ const MUTAGEN_PLAIN_DESC: Record<string, string> = {
 
 export default function YearlyFortuneCard({ fortune, captureMode }: { fortune: YearlyFortune; captureMode?: boolean }) {
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+    <div className="bg-card border border-line rounded-2xl p-6">
       <div className="flex items-baseline gap-2 mb-4">
-        <h2 className="text-base font-semibold text-indigo-400">
+        <h2 className="text-base font-semibold text-accent">
           流年運勢
         </h2>
-        <span className="text-sm text-slate-400">
+        <span className="text-sm text-muted">
           {fortune.year} 年（{fortune.heavenlyStem}{fortune.earthlyBranch}年）
         </span>
       </div>
@@ -44,11 +44,11 @@ export default function YearlyFortuneCard({ fortune, captureMode }: { fortune: Y
       {/* 四化 */}
       <div className="mb-4">
         <Tooltip {...getTooltipProps("ziwei.field.yearlyMutagen")}>
-          <h3 className="text-xs text-slate-500 mb-2">流年四化</h3>
+          <h3 className="text-xs text-muted mb-2">流年四化</h3>
         </Tooltip>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {fortune.mutagen.map((starName, i) => (
-            <div key={i} className="bg-slate-800 rounded-lg p-2.5 text-center">
+            <div key={i} className="bg-paper border border-line rounded-lg p-2.5 text-center">
               <Tooltip
                 fieldDesc={getValueDesc(`ziwei.value.${MUTAGEN_LABELS[i]}`)}
                 valueDesc={getValueDesc(`ziwei.value.${starName}`) ?? undefined}
@@ -57,7 +57,7 @@ export default function YearlyFortuneCard({ fortune, captureMode }: { fortune: Y
                   {MUTAGEN_LABELS[i]}
                 </span>
               </Tooltip>
-              <div className="text-sm text-white font-medium mt-0.5">{starName}</div>
+              <div className="text-sm text-ink font-medium mt-0.5">{starName}</div>
             </div>
           ))}
         </div>
@@ -66,7 +66,7 @@ export default function YearlyFortuneCard({ fortune, captureMode }: { fortune: Y
       {/* 重點宮位 */}
       <div>
         <Tooltip {...getTooltipProps("ziwei.field.yearlyKeyPalace")}>
-          <h3 className="text-xs text-slate-500 mb-2">重點宮位</h3>
+          <h3 className="text-xs text-muted mb-2">重點宮位</h3>
         </Tooltip>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {fortune.keyPalaces.map((palace) => {
@@ -83,22 +83,22 @@ export default function YearlyFortuneCard({ fortune, captureMode }: { fortune: Y
               : getValueDesc("ziwei.value.無主星") ?? undefined;
 
             return (
-              <div key={palace.name} className="bg-slate-800 rounded-lg p-2.5">
+              <div key={palace.name} className="bg-paper border border-line rounded-lg p-2.5">
                 <div className="flex items-center justify-between mb-1">
                   <Tooltip
                     fieldDesc={getValueDesc(`ziwei.value.palace.${normalized}`)}
                     valueDesc={starDesc}
                   >
-                    <span className="text-xs font-medium text-slate-300">{palace.name}</span>
+                    <span className="text-xs font-medium text-ink/80">{palace.name}</span>
                   </Tooltip>
-                  <span className="text-[10px] text-slate-600">
+                  <span className="text-[10px] text-muted/70">
                     {palace.heavenlyStem}{palace.earthlyBranch}
                   </span>
                 </div>
-                <div className="text-[11px] text-amber-300">
+                <div className="text-[11px] text-accent">
                   {palace.majorStars.length > 0
                     ? palace.majorStars.join("、")
-                    : <span className="text-slate-600">無主星</span>
+                    : <span className="text-muted/70">無主星</span>
                   }
                 </div>
               </div>
@@ -110,22 +110,22 @@ export default function YearlyFortuneCard({ fortune, captureMode }: { fortune: Y
       {/* Expandable detailed interpretation */}
       <ExpandableSection title="📖 流年解讀" forceOpen={captureMode}>
         {/* 四化解讀 */}
-        <div className="text-slate-300">
-          <p className="font-medium text-slate-200 text-xs mb-1">流年四化</p>
-          <p className="ml-3 text-[11px] text-slate-500 mb-2">
+        <div className="text-ink/80">
+          <p className="font-medium text-ink text-xs mb-1">流年四化</p>
+          <p className="ml-3 text-[11px] text-muted mb-2">
             四化是今年的四股主要能量，分別影響你人生中的不同領域。
           </p>
           {fortune.mutagen.map((starName, i) => {
             const starDesc = getValueDesc(`ziwei.value.${starName}`);
             return (
-              <div key={i} className="ml-3 text-xs text-slate-400 mb-2">
+              <div key={i} className="ml-3 text-xs text-muted mb-2">
                 <span className={MUTAGEN_COLORS[i]}>{MUTAGEN_LABELS[i]}</span>
-                <span className="text-slate-500">（{starName}）</span>
-                <span className="block ml-3 text-slate-500 mt-0.5">
+                <span className="text-muted">（{starName}）</span>
+                <span className="block ml-3 text-muted mt-0.5">
                   {MUTAGEN_PLAIN_DESC[MUTAGEN_LABELS[i]]}
                 </span>
                 {starDesc && (
-                  <span className="block ml-3 text-slate-500">
+                  <span className="block ml-3 text-muted">
                     {starName}：{starDesc}
                   </span>
                 )}
@@ -135,9 +135,9 @@ export default function YearlyFortuneCard({ fortune, captureMode }: { fortune: Y
         </div>
 
         {/* 重點宮位解讀（含流年四化影響） */}
-        <div className="text-slate-300">
-          <p className="font-medium text-slate-200 text-xs mb-1">重點宮位（今年能量走向）</p>
-          <p className="ml-3 text-[11px] text-slate-500 mb-2">
+        <div className="text-ink/80">
+          <p className="font-medium text-ink text-xs mb-1">重點宮位（今年能量走向）</p>
+          <p className="ml-3 text-[11px] text-muted mb-2">
             以下為今年六大重點宮位的能量分析。每個宮位代表人生的一個面向，主星是這個領域的核心能量，而四化則是今年特別加強或需要注意的部分。
           </p>
           {fortune.keyPalaces.map((palace) => {
@@ -155,16 +155,16 @@ export default function YearlyFortuneCard({ fortune, captureMode }: { fortune: Y
             return (
               <div key={palace.name} className="ml-3 mb-3">
                 {/* Palace header */}
-                <p className="text-xs text-slate-300">
+                <p className="text-xs text-ink/80">
                   <span className="font-medium">{palace.name}</span>
-                  {palaceDesc && <span className="text-slate-500"> — {palaceDesc}</span>}
+                  {palaceDesc && <span className="text-muted"> — {palaceDesc}</span>}
                 </p>
 
                 {/* 四化 yearly effect callout */}
                 {mutagenHitsInPalace.map(({ label, color }) => (
                   <p key={label} className="ml-3 text-xs mt-1">
                     <span className={color}>⭐ 今年{label}能量進入此宮</span>
-                    <span className="text-slate-400"> — {MUTAGEN_YEARLY_EFFECT[label]}</span>
+                    <span className="text-muted"> — {MUTAGEN_YEARLY_EFFECT[label]}</span>
                   </p>
                 ))}
 
@@ -179,7 +179,7 @@ export default function YearlyFortuneCard({ fortune, captureMode }: { fortune: Y
                     if (!desc) return null;
 
                     return (
-                      <p key={s} className="ml-3 text-xs text-slate-400 mt-0.5">
+                      <p key={s} className="ml-3 text-xs text-muted mt-0.5">
                         {hasMutagen ? (
                           <>
                             {s}（今年<span className={MUTAGEN_COLORS[mutagenIdx]}>{MUTAGEN_LABELS[mutagenIdx]}</span>）：{desc}。在今年{MUTAGEN_LABELS[mutagenIdx]}的加持下，這股能量會特別明顯。
@@ -193,7 +193,7 @@ export default function YearlyFortuneCard({ fortune, captureMode }: { fortune: Y
                     );
                   })
                 ) : (
-                  <p className="ml-3 text-xs text-slate-500 mt-0.5">
+                  <p className="ml-3 text-xs text-muted mt-0.5">
                     此宮位無主星，能量更靈活——受流年和對面宮位影響，表現因人而異。
                   </p>
                 )}
